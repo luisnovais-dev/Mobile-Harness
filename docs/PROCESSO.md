@@ -423,10 +423,10 @@ raiz_aposentados: ~/.local/share/onluis-dev/aposentados
 env_check:
 comandos:
   lint: ./gradlew lint
-  test: ./gradlew testDebugUnitTest
+  test: ./gradlew testOfflineDebugUnitTest testOnlineDebugUnitTest
   integracao: 
   typecheck: 
-  build: ./gradlew assembleDebug
+  build: ./gradlew assembleOfflineDebug assembleOnlineDebug
   smoke: 
   e2e: 
   visual: manual
