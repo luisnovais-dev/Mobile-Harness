@@ -410,7 +410,7 @@ label_aprovacao: status:approved
 label_excecao_tamanho: size:exception
 teto_pr_linhas: 2000
 raiz_aposentados: ~/.local/share/onluis-dev/aposentados
-env_check:
+env_check: ""  # projeto não usa .env; sem chaves a conferir
 comandos:
   lint: ./gradlew lint
   test: ./gradlew testOfflineDebugUnitTest testOnlineDebugUnitTest
@@ -420,7 +420,7 @@ comandos:
   smoke: 
   e2e: 
   visual: manual
-ambiente_local: pendente
+ambiente_local: não aplicável (app Android, sem servidor local); build e instalação por linha de comando, ver README
 ambientes:
   # Matriz: sim = pré-autorizado na invocação; nao = exige instrução explícita.
   # Preenchida como nao em tudo: a pré-autorização é decisão do mantenedor.
