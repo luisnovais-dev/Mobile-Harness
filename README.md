@@ -293,11 +293,20 @@ flowchart TB
 <br />
 
 ### Prerequisites
-* **Android Studio**: Ladybug / Hedgehog or newer
-* **Android SDK**: API Level 36 (`compileSdk 36`)
-* **Java Development Kit**: JDK 17 (Eclipse Temurin or OpenJDK)
-* **Android NDK**: `26.1.10909125`
-* **CMake**: `3.22.1`
+* **Java Development Kit**: JDK 17 (Eclipse Temurin ou OpenJDK). Ubuntu/Debian: `sudo apt install openjdk-17-jdk-headless`.
+* **Android SDK**: platform API 36 (`compileSdk 36`), `platform-tools` e `cmdline-tools`. Build-tools 35.0.0 é instalado pelo Gradle na primeira compilação, desde que as licenças estejam aceitas.
+* **Android NDK**: `28.2.13676358` (valor padrão de `app/build.gradle.kts`; para outra versão, passe `-PmhNdkVersion=<versão>`).
+* **CMake**: `3.22.1`, instalado pelo SDK Manager.
+* **Android Studio** (opcional): Ladybug / Hedgehog ou mais recente. A linha de comando basta.
+* **Submódulos**: `third_party/proot` e `third_party/libandroid-shmem`. Sem eles, o CMake falha.
+
+Instalação do SDK pela linha de comando (com `cmdline-tools` em `$ANDROID_HOME/cmdline-tools/latest`):
+
+```bash
+export ANDROID_HOME=$HOME/Android/Sdk
+sdkmanager --licenses
+sdkmanager "platform-tools" "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
+```
 
 ### Clone & Build Debug APK
 ```bash
@@ -305,20 +314,23 @@ flowchart TB
 git clone https://github.com/techjarves/Mobile-Harness.git
 cd Mobile-Harness
 
-# Build the standard ARM64 debug binary
-./gradlew assembleDebug
+# Inicializa os submódulos (também dentro de cada worktree)
+git submodule update --init --recursive
 
-# Deploy directly to a connected test device
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+# Build dos dois flavors de debug (offline e online)
+./gradlew assembleOfflineDebug assembleOnlineDebug
+
+# Instalar o APK do flavor escolhido em um dispositivo conectado
+adb install -r app/build/outputs/apk/offline/debug/app-offline-debug.apk
 ```
 
 ### Quality Assurance & Testing
 ```bash
-# Run unit tests
-./gradlew testDebugUnitTest
+# Run unit tests (os dois flavors)
+./gradlew testOfflineDebugUnitTest testOnlineDebugUnitTest
 
 # Run static analysis linter
-./gradlew lintDebug
+./gradlew lint
 ```
 
 ### Target Profiles
