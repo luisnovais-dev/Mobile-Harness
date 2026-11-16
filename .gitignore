@@ -75,7 +75,6 @@ dist/update-test/
 *.key
 # Dependências e builds
 node_modules/
-dist/
 .next/
 coverage/
 *.tsbuildinfo
@@ -85,7 +84,6 @@ backups/
 *.sql.gz
 cookies.txt
 _tmp*
-# Logs
 # Ferramentas locais de agentes (nunca versionadas)
 .agent/
 .claude/worktrees/
