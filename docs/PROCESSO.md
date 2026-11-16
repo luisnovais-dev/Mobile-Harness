@@ -386,6 +386,8 @@ Worktree é temporária. Ela é criada para uma mudança e removida ao fim do tr
 - Ao criar, a branch não rastreia a `main`: use `--no-track` a partir de `origin/main`. Publique só a própria branch, com `git push -u origin <branch>`. Nunca faça push para a `main`.
 - O diretório da worktree depende da ferramenta que a criou. Claude usa `.claude/worktrees/<nome>`. Codex usa `~/.codex/worktrees/<nome>`, fixo pela ferramenta. OpenCode usa o diretório do checkout, conforme a configuração local. Não crie worktree fora do diretório que a ferramenta usa.
 - Antes de criar uma worktree, atualize as referências: `git fetch origin --prune`.
+- Submódulos não vêm com a worktree. Depois de criá-la, rode `git submodule update --init --recursive` dentro dela. Sem isso, o CMake do Android falha ao gerar o build, porque `third_party/proot` e `third_party/libandroid-shmem` ficam vazios.
+- Não substitua um submódulo por link simbólico apontando para o checkout principal. O git registra o caminho como `T` (typechange), e um commit feito nesse estado troca o submódulo por um link.
 - Antes de editar, confirme `git status` limpo, a branch atual e a relação com o main remoto.
 - Antes de remover, confirme que não há trabalho não publicado. Não remova worktree de outra sessão, nem limpe branch, worktree ou artefato de outra sessão automaticamente. Liste o alvo, confirme que não está associado a trabalho ativo e peça confirmação.
 - Use `git worktree list` para inspecionar, independentemente da localização.
