@@ -420,7 +420,7 @@ comandos:
   smoke: 
   e2e: 
   visual: manual
-ambiente_local: não aplicável (app Android, sem servidor local); build e instalação por linha de comando, ver README
+ambiente_local: sh scripts/install-phone.sh  # build online, instalação e abertura no celular conectado por adb; teste de atualização em docs/update-testing.md
 ambientes:
   # Matriz: sim = pré-autorizado na invocação; nao = exige instrução explícita.
   # Preenchida como nao em tudo: a pré-autorização é decisão do mantenedor.
