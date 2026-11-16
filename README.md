@@ -310,6 +310,11 @@ sdkmanager --licenses
 sdkmanager "platform-tools" "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
 ```
 
+O build por linha de comando precisa localizar o SDK. Duas formas, que valem para qualquer shell, inclusive o de agentes:
+
+* Definir `ANDROID_HOME` no perfil do shell (`~/.profile` ou `~/.bashrc`): `export ANDROID_HOME=$HOME/Android/Sdk`.
+* Criar `local.properties` na raiz do checkout com `sdk.dir=<caminho do SDK>`. O arquivo é ignorado pelo git, então vale por checkout e por worktree.
+
 ### Clone & Build Debug APK
 ```bash
 # Clone the repository
