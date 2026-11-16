@@ -19,3 +19,10 @@ internal object SharedStorageAccess {
         return writeGranted && readGranted
     }
 }
+
+/** Argumentos de bind do armazenamento compartilhado; vazio quando não há acesso (argv inalterado). */
+internal fun sharedStorageBinds(access: Boolean, rootfs: java.io.File): List<String> {
+    if (!access) return emptyList()
+    java.io.File(rootfs, "sdcard").mkdirs()
+    return listOf("-b", "/storage/emulated/0:/sdcard")
+}
