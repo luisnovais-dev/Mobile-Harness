@@ -51,6 +51,7 @@ import com.jarves.mh.network.ModelDiscoveryResult
 import com.jarves.mh.network.ProviderApiClient
 import com.jarves.mh.network.GitHubRepository
 import com.jarves.mh.runtime.ClaudeRuntimeBridge
+import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.DshRuntimeBridge
 import com.jarves.mh.runtime.AgentRegistry
 import com.jarves.mh.runtime.AgentUpdateInfo
@@ -1846,6 +1847,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (enoughStorage) AndroidHealthStatus.PASSED else AndroidHealthStatus.WARNING,
                 if (enoughStorage) AndroidHealthFix.NONE else AndroidHealthFix.OPEN_STORAGE_SETTINGS,
             )
+            val sharedStorage = currentSharedStorageAccess(app)
+            checks += AndroidHealthCheck(
+                "shared_storage", str(R.string.an_health_shared_storage_title),
+                if (sharedStorage) str(R.string.an_health_shared_storage_ok) else str(R.string.an_health_shared_storage_missing),
+                if (sharedStorage) AndroidHealthStatus.PASSED else AndroidHealthStatus.WARNING,
+                if (sharedStorage) AndroidHealthFix.NONE else AndroidHealthFix.REQUEST_STORAGE_ACCESS,
+            )
             val installAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.O || app.packageManager.canRequestPackageInstalls()
             checks += AndroidHealthCheck(
                 "install", str(R.string.an_health_install_title),
@@ -1888,7 +1896,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             AndroidHealthFix.OPEN_STORAGE_SETTINGS -> app.startActivity(Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             AndroidHealthFix.CLEAN -> cleanAndroidProject()
             AndroidHealthFix.REFRESH -> refreshAndroidHealth()
-            AndroidHealthFix.COPY_LOGCAT_COMMAND, AndroidHealthFix.NONE -> Unit
+            // Pedido de permissão precisa de Activity: a interface abre o launcher.
+            AndroidHealthFix.REQUEST_STORAGE_ACCESS, AndroidHealthFix.COPY_LOGCAT_COMMAND, AndroidHealthFix.NONE -> Unit
         }
     }
 

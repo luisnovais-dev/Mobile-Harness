@@ -74,6 +74,9 @@
     <string name="an_health_network_title">Dependency network</string>
     <string name="an_health_network_ok">An internet connection is available.</string>
     <string name="an_health_network_offline">No internet connection is available; uncached dependencies may fail.</string>
+    <string name="an_health_shared_storage_title">Device storage</string>
+    <string name="an_health_shared_storage_ok">Project sessions can read and write device storage.</string>
+    <string name="an_health_shared_storage_missing">Allow file access so project sessions can use device storage. Without it, projects stay in the app.</string>
     <string name="an_health_storage_title">Free storage</string>
     <string name="an_health_storage_detail">%1$d MB available for builds and APK installation.</string>
     <string name="an_health_install_title">APK installation permission</string>

@@ -4550,6 +4550,25 @@ private fun WorkspaceScreen(
             pendingAndroidAction = null
         },
     )
+    val storageAccessLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { onRefreshAndroidHealth() },
+    )
+    val allFilesAccessLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { onRefreshAndroidHealth() },
+    )
+    val requestSharedStorageAccess: () -> Unit = {
+        if (BuildConfig.IS_PLAY_BUILD && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            allFilesAccessLauncher.launch(
+                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:${context.packageName}")),
+            )
+        } else {
+            storageAccessLauncher.launch(
+                arrayOf("android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"),
+            )
+        }
+    }
     val saveApkLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/vnd.android.package-archive"),
         onResult = { uri -> if (uri != null) onSaveAndroidApk(uri) },
@@ -4633,7 +4652,9 @@ private fun WorkspaceScreen(
             onOpenAppDetails = onOpenAndroidAppDetails,
             onUninstallApp = onUninstallAndroidApp,
             onOpenIssue = { issue -> showAndroidBuild = false; onOpenAndroidIssue(issue) },
-            onHealthFix = onAndroidHealthFix,
+            onHealthFix = { fix ->
+                if (fix == AndroidHealthFix.REQUEST_STORAGE_ACCESS) requestSharedStorageAccess() else onAndroidHealthFix(fix)
+            },
             onRefreshHealth = onRefreshAndroidHealth,
             onStartLogcat = onStartAndroidLogcat,
             onStopLogcat = onStopAndroidLogcat,

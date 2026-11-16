@@ -116,15 +116,7 @@ class RuntimeInstaller(private val context: Context) {
     }
 
     /** Returns the already verified runtime without performing network or update checks. */
-    private fun sharedStorageAccess(): Boolean = SharedStorageAccess.isGranted(
-        sdkInt = android.os.Build.VERSION.SDK_INT,
-        isPlayBuild = BuildConfig.IS_PLAY_BUILD,
-        isManager = android.os.Build.VERSION.SDK_INT >= 30 && android.os.Environment.isExternalStorageManager(),
-        writeGranted = context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED,
-        readGranted = context.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED,
-    )
+    private fun sharedStorageAccess(): Boolean = currentSharedStorageAccess(context)
 
     fun installedRuntime(): InstalledRuntime {
         check(isInstalled()) { str(R.string.rt_install_incomplete) }
