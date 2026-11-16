@@ -212,3 +212,12 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+// Overlay de manifesto por distribuição: o build Play declara só o acesso total aos arquivos;
+// o sideload declara só WRITE/READ em runtime. Ver a Spec da issue #4.
+androidComponents {
+    onVariants { variant ->
+        val overlay = if (playBuild) "src/play/AndroidManifest.xml" else "src/sideload/AndroidManifest.xml"
+        variant.sources.manifests.addStaticManifestFile(project.layout.projectDirectory.file(overlay).asFile.absolutePath)
+    }
+}
