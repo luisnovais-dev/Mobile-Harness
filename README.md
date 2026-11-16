@@ -48,6 +48,8 @@
 
 <br />
 
+> **Fork.** Este repositório (`luisnovais-dev/Mobile-Harness`) é um fork de [`techjarves/Mobile-Harness`](https://github.com/techjarves/Mobile-Harness). Todos os créditos do projeto original pertencem ao seu criador, techjarves. O código segue a licença MIT ([LICENSE](LICENSE)). As mudanças deste fork estão nos commits e na PR de adoção do processo.
+
 ## Download Mobile Harness
 
 <div align="center">
@@ -311,7 +313,7 @@ sdkmanager "platform-tools" "platforms;android-36" "ndk;28.2.13676358" "cmake;3.
 ### Clone & Build Debug APK
 ```bash
 # Clone the repository
-git clone https://github.com/techjarves/Mobile-Harness.git
+git clone https://github.com/luisnovais-dev/Mobile-Harness.git
 cd Mobile-Harness
 
 # Inicializa os submódulos (também dentro de cada worktree)
@@ -339,7 +341,7 @@ adb install -r app/build/outputs/apk/offline/debug/app-offline-debug.apk
   ```bash
   ./gradlew -PplayBuild=true assembleDebug
   ```
-  Refer to the [Google Play Release Checklist](docs/PLAY_STORE_CHECKLIST.md) for signing and permission policies.
+  Verificado neste fork: compila os dois flavors de debug (`offline` e `online`) com `targetSdk 36`. Não gera APK de release assinado. O bundle da Play exige o keystore de upload (`MH_UPLOAD_STORE_FILE`, `MH_UPLOAD_STORE_PASSWORD`, `MH_UPLOAD_KEY_ALIAS`, `MH_UPLOAD_KEY_PASSWORD`) e a URL pública da política de privacidade (`-PprivacyPolicyUrl`). Refer to the [Google Play Release Checklist](docs/PLAY_STORE_CHECKLIST.md) for signing and permission policies.
 
 </details>
 
