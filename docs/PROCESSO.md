@@ -417,7 +417,7 @@ Bloco lido pelas skills. Cada projeto que adote o processo preenche os valores, 
 processo_versao: 4
 branch_base: main
 prefixos_branch: [feat/, fix/, docs/]
-label_tipo: pendente
+label_tipo: escolhido por PR, entre os type:*
 label_aprovacao: status:approved
 label_excecao_tamanho: size:exception
 teto_pr_linhas: 2000
@@ -437,7 +437,6 @@ ambientes:
   # Matriz: sim = pré-autorizado na invocação; nao = exige instrução explícita.
   # Preenchida como nao em tudo: a pré-autorização é decisão do mantenedor.
   dev:      {ler: nao, testar: nao, escrever_dados: nao, deploy: nao}
-  staging:  {ler: nao, testar: nao, escrever_dados: nao, deploy: nao}
   prod:     {ler: nao, testar: nao, escrever_dados: nao, deploy: nao}
 stack:
   gerenciador_pacotes: Gradle (wrapper 8.14)
