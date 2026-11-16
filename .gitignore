@@ -64,3 +64,31 @@ dist/runtime-bundles/sources/
 
 # Generated local in-app update test artifacts.
 dist/update-test/
+
+# Processo (adotar-processo, template v4)
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+.secrets/
+*.pem
+*.key
+# Dependências e builds
+node_modules/
+dist/
+.next/
+coverage/
+*.tsbuildinfo
+# Backups, dumps e temporários
+backups/
+*.dump
+*.sql.gz
+cookies.txt
+_tmp*
+# Logs
+# Ferramentas locais de agentes (nunca versionadas)
+.agent/
+.claude/worktrees/
+.claude/settings.local.json
+.claude/tmp-*
+.claude/*.log
