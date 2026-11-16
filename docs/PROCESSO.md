@@ -154,43 +154,31 @@ Quando há fronteira entre front e back, existe uma fonte única da interface, c
 
 ### Feature flag
 
-Feature flag é obrigatório quando código mesclado expõe ao usuário um comportamento incompleto. O flag fica desligado em produção, ligado em DEV e em STAGING, e é removido no ticket que fecha o épico.
+Feature flag é obrigatório quando código mesclado expõe ao usuário um comportamento incompleto. O flag fica desligado em produção, ligado em DEV, e é removido no ticket que fecha o épico.
 
 ## Ambientes
 
 A matriz de ambientes fica na [Configuração](#configuração), chave `ambientes`. Ela define, para cada ambiente, se o agente pode ler, testar, escrever dados e fazer deploy sem pedir nova autorização na invocação. É a única pré-autorização permanente que o processo admite, e só vale para as células marcadas como `sim`.
 
-Os ambientes são três: DEV, STAGING e PROD.
+Os ambientes são dois: DEV e PROD.
 
 - **DEV** é o desenvolvimento, com dados sintéticos. A máquina local de desenvolvimento segue a linha `dev` da matriz. Pode ser pré-autorizado pela matriz, conforme configurado.
-- **STAGING** é o preview. É um clone sandbox de produção: dados copiados de produção, isolados dela. Não tem dados sintéticos. Segue a regra da matriz, conforme configurado, com as restrições de [STAGING](#staging).
 - **PROD** nunca é pré-autorizado para escrita, teste ou deploy. Leitura só ocorre por acesso somente leitura configurado e com pedido explícito.
 - Testes e comandos de escrita conferem o alvo antes de executar (invariante 5 de [`AGENTS.md`](../AGENTS.md)).
-
-### STAGING
-
-STAGING é o preview: build igual ao de produção, clone sandbox de produção, segredos próprios e acesso protegido. Mudança sensível exige aceite em STAGING, ou o flag desligado quando não houver STAGING.
-
-Dados copiados de produção em STAGING:
-
-- não saem do ambiente para chat, issue, PR, log ou arquivo do repositório;
-- o E2E automático só escreve em STAGING se a matriz permitir (`staging.escrever_dados: sim`);
-- a recriação do sandbox a partir de produção exige instrução explícita na invocação.
 
 ### Identidade de teste
 
 - Usuários sintéticos por perfil e fixtures existem só em DEV. A sessão de teste em DEV é obtida sem interação para o agente.
-- Em STAGING, a identidade de teste é uma conta criada no sandbox, recriada depois de cada recriação do sandbox. Nunca é credencial de pessoa real.
 - Há um teste que prova a indisponibilidade desses usuários e atalhos em produção. Ele é obrigatório.
 - O agente nunca usa credencial real de pessoa.
 
-### Ensaio de migração em STAGING
+### Ensaio de migração
 
-O ensaio de migrações acontece em STAGING. Ele é isolado de produção, nunca é escrito pelo E2E automático e é recriado sob demanda, com instrução explícita. Antes de migração, a reversão é planejada por tipo:
+O ensaio de migrações acontece em DEV, com dados sintéticos. Ele é isolado de produção e nunca é escrito pelo E2E automático. Antes de migração, a reversão é planejada por tipo:
 
 - **aditiva** (coluna que aceita nulo, tabela nova, índice): conferir que o backup automático do provedor existe e é recente. Não exige dump. A reversão é remover o que foi adicionado.
 - **transformadora** (troca de tipo, backfill, mudança de formato): expandir e contrair. A migração cria o novo ao lado do antigo, o backfill preenche o novo, o código passa a usar o novo, e o antigo só é removido em outra entrega. Antes, dump somente das tabelas afetadas.
-- **destrutiva** (remoção de coluna, tabela ou dados): ensaio em STAGING, que mede a duração e valida a volta, e dump das tabelas afetadas antes da execução. Exige instrução explícita na invocação.
+- **destrutiva** (remoção de coluna, tabela ou dados): ensaio em DEV, que mede a duração e valida a volta, e dump das tabelas afetadas antes da execução. Exige instrução explícita na invocação.
 
 Dump completo do banco não é exigido em nenhum dos tipos.
 
@@ -218,7 +206,7 @@ A Spec lista os Requisitos de Segurança acionados pela superfície da mudança.
 - trilha de auditoria para ações sensíveis;
 - cabeçalhos de segurança em respostas HTTP;
 - guarda do modo de teste, que impede ativar identidade de teste em produção;
-- plano de reversão de schema, conforme [Ensaio de migração em STAGING](#ensaio-de-migração-em-staging).
+- plano de reversão de schema, conforme [Ensaio de migração](#ensaio-de-migração).
 
 ## Interface
 
@@ -302,7 +290,7 @@ Quando a mudança altera o que o projeto faz, para quem serve ou o seu status, a
 | `docs/adr/` | Decisões transversais, uma por arquivo |
 | `docs/dominio.md` | Glossário do domínio |
 | `docs/arquitetura.md` | Visão da arquitetura |
-| `docs/ambientes.md` | Ambientes (DEV, STAGING e PROD) e identidade de teste |
+| `docs/ambientes.md` | Ambientes (DEV e PROD) e identidade de teste |
 | `docs/funcionalidades/` | Uma página por funcionalidade entregue |
 | `docs/design-system/` | Tokens e componentes, quando houver interface |
 | `docs/referencias/<épico-ou-issue>/` | Referências enviadas pelo usuário, com manifesto |
