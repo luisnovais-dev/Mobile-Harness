@@ -424,11 +424,11 @@ env_check:
 comandos:
   lint: ./gradlew lint
   test: ./gradlew testDebugUnitTest
-  integracao: pendente
-  typecheck: pendente
+  integracao: 
+  typecheck: 
   build: ./gradlew assembleDebug
-  smoke: pendente
-  e2e: pendente
+  smoke: 
+  e2e: 
   visual: manual
 ambiente_local: pendente
 ambientes:
@@ -443,7 +443,7 @@ stack:
   linguagens: Kotlin 2.2.21, JVM 17
   frameworks: Android (compileSdk 36), Jetpack Compose
   servicos_locais: nenhum identificado
-  regras_adicionais: pendente
+  regras_adicionais: nenhuma além das do AGENTS.md
 ```
 
 Os valores de `comandos`, `ambientes` e `stack` são específicos de cada projeto. O template não os preenche.
