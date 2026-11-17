@@ -194,7 +194,8 @@ O baseline de schema fica numa PR própria, e a CI verifica paridade entre o sch
 
 - Um `.env` por projeto, na raiz do checkout principal, compartilhado pelas worktrees por link ou caminho, com prefixos por ambiente.
 - `.env.example` versionado contém somente referências `op://` do 1Password, preenchidas por `op inject`.
-- O comando `env:check` (chave `env_check` da Configuração) confere a presença das chaves sem exibir valores.
+- **Exceção (D4, Spec #4):** `.env.example` também pode conter chaves não secretas do projeto, com valor vazio (ex.: `ADB_DEVICE=`). Nenhum valor real entra no modelo.
+- O comando `env:check` (chave `env_check` da Configuração, `scripts/env-check.sh`) confere a presença das chaves sem exibir valores.
 - Nenhum arquivo de segredo é versionado, nem criptografado.
 - Segredos não aparecem em skills, exemplos, issues, PRs, logs ou saídas de script.
 
@@ -410,7 +411,7 @@ label_aprovacao: status:approved
 label_excecao_tamanho: size:exception
 teto_pr_linhas: 2000
 raiz_aposentados: ~/.local/share/onluis-dev/aposentados
-env_check: ""  # projeto não usa .env; sem chaves a conferir
+env_check: sh scripts/env-check.sh  # confere chaves de .env contra .env.example, sem exibir valores
 comandos:
   lint: ./gradlew lint
   test: ./gradlew testOfflineDebugUnitTest testOnlineDebugUnitTest
@@ -418,7 +419,7 @@ comandos:
   typecheck: 
   build: ./gradlew assembleOfflineDebug assembleOnlineDebug
   smoke: 
-  e2e: 
+  e2e: sh scripts/e2e/run.sh  # harness adb; alvo: ADB_DEVICE do .env, senão aparelho único, senão emulador; suíte do épico pendente até a tag ser ativada
   visual: manual
 ambiente_local: sh scripts/install-phone.sh  # build online, instalação e abertura no celular conectado por adb; teste de atualização em docs/update-testing.md
 ambientes:
