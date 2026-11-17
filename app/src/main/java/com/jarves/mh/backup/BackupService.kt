@@ -200,6 +200,9 @@ class BackupService : Service() {
         is NewerBackupException -> str(R.string.backup_error_newer)
         is NotEnoughSpaceException -> str(R.string.backup_error_space, android.text.format.Formatter.formatShortFileSize(this, error.requiredBytes))
         is InvalidBackupException -> str(R.string.backup_error_invalid)
+        is ExternalStorageUnavailableException -> str(R.string.backup_error_external_unavailable)
+        is ExternalFolderNotEmptyException -> str(R.string.backup_error_external_not_empty)
+        is ExternalFolderSharedException -> str(R.string.backup_error_external_shared)
         else -> error.message?.takeIf(String::isNotBlank) ?: error.javaClass.simpleName
     }
 

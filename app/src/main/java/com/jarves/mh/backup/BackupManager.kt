@@ -315,11 +315,6 @@ class BackupManager(
         File(filesDir, "workspaces/$newId").mkdirs()
     }
 
-    private fun projects(prefs: JSONObject): List<JSONObject> = runCatching {
-        val array = JSONArray(prefs.getJSONObject("projects_json").getString("v"))
-        (0 until array.length()).mapNotNull(array::optJSONObject)
-    }.getOrDefault(emptyList())
-
     private fun isSafeId(id: String) = id.none { it == '/' || it == '\\' || it == '\u0000' } && id != "." && id != ".."
 
     private fun collect(includeHome: Boolean, directories: MutableList<String>, checkCancelled: () -> Unit): List<Item> {
@@ -407,18 +402,6 @@ class BackupManager(
         closeEntry()
     }
 
-    private fun ZipInputStream.readJson(): JSONObject {
-        val bytes = java.io.ByteArrayOutputStream()
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        while (true) {
-            val count = read(buffer)
-            if (count < 0) break
-            bytes.write(buffer, 0, count)
-            if (bytes.size() > MAX_JSON_BYTES) throw InvalidBackupException("Backup file is damaged")
-        }
-        return JSONObject(bytes.toString(Charsets.UTF_8.name()))
-    }
-
     private fun copy(input: InputStream, output: OutputStream, checkCancelled: () -> Unit, onBytes: (Int) -> Unit) {
         val buffer = ByteArray(COPY_BUFFER_BYTES)
         while (true) {
@@ -431,6 +414,37 @@ class BackupManager(
     }
 
     companion object {
+        /**
+         * Pastas do aparelho que a restauração gravaria (F10). Lê o arquivo só até as preferências,
+         * que vêm logo depois do manifesto; a restauração confere e grava tudo depois.
+         */
+        fun externalFoldersIn(input: InputStream, password: CharArray?): List<String> {
+            val zip = ZipInputStream(BackupCrypto.openReader(input.buffered(), password))
+            while (true) {
+                val entry = zip.nextEntry ?: return emptyList()
+                if (entry.name == PREFS) {
+                    return projects(zip.readJson()).map { it.optString("externalRoot") }.filter { it.isNotBlank() }
+                }
+            }
+        }
+
+    private fun projects(prefs: JSONObject): List<JSONObject> = runCatching {
+        val array = JSONArray(prefs.getJSONObject("projects_json").getString("v"))
+        (0 until array.length()).mapNotNull(array::optJSONObject)
+    }.getOrDefault(emptyList())
+
+    private fun ZipInputStream.readJson(): JSONObject {
+        val bytes = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        while (true) {
+            val count = read(buffer)
+            if (count < 0) break
+            bytes.write(buffer, 0, count)
+            if (bytes.size() > MAX_JSON_BYTES) throw InvalidBackupException("Backup file is damaged")
+        }
+        return JSONObject(bytes.toString(Charsets.UTF_8.name()))
+    }
+
         private const val MANIFEST = "manifest.json"
         private const val PREFS = "prefs.json"
         private const val SECRETS = "secrets.json"

@@ -353,4 +353,15 @@ class BackupManagerTest {
             assertTrue(!external.exists())
         }
     }
+
+    /** F10: antes de gravar, a restauração mostra as pastas do aparelho do backup; a leitura não altera nada. */
+    @Test
+    fun `restore preview lists the device folders of the backup and changes nothing`() {
+        val (source, _) = sourceApp()
+        val external = temp.newFolder("device", "MeuProjeto9")
+        external.write("README.md", "on device")
+        val bytes = backupWithExternal(source, externalStores(external))
+        assertEquals(listOf(external.path), BackupManager.externalFoldersIn(ByteArrayInputStream(bytes), null))
+        assertEquals("on device", File(external, "README.md").readText())
+    }
 }

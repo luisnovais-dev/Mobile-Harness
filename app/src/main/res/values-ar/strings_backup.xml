@@ -40,6 +40,10 @@
     <string name="backup_error_open_output">تعذرت كتابة ملف النسخة الاحتياطية</string>
     <string name="backup_error_open_input">تعذر فتح ملف النسخة الاحتياطية</string>
     <string name="backup_error_wrong_password">كلمة المرور غير صحيحة</string>
+    <string name="backup_restore_folders_title">المجلدات على هذا الهاتف التي ستُكتب فيها الاستعادة</string>
+    <string name="backup_error_external_unavailable">يلزم الوصول إلى التخزين لنسخ أو استعادة مجلد مشروع على هذا الهاتف. لم يتغير شيء.</string>
+    <string name="backup_error_external_not_empty">يحتوي مجلد مشروع على هذا الهاتف على ملفات بالفعل. أفرِغه أو اختر مجلدًا آخر. لم يتغير شيء.</string>
+    <string name="backup_error_external_shared">يستخدم مشروعان في هذه النسخة المجلد نفسه على هذا الهاتف. لم يتغير شيء.</string>
     <string name="backup_error_newer">هذه النسخة الاحتياطية من إصدار أحدث من Mobile Harness. حدّث التطبيق أولًا.</string>
     <string name="backup_error_space">لا توجد مساحة تخزين كافية. يلزم نحو %1$s.</string>
     <string name="backup_error_invalid">هذا الملف ليس نسخة احتياطية من Mobile Harness أو أنه تالف.</string>

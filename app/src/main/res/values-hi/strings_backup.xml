@@ -40,6 +40,10 @@
     <string name="backup_error_open_output">बैकअप फ़ाइल नहीं लिखी जा सकी</string>
     <string name="backup_error_open_input">बैकअप फ़ाइल नहीं खोली जा सकी</string>
     <string name="backup_error_wrong_password">गलत पासवर्ड</string>
+    <string name="backup_restore_folders_title">इस फ़ोन के वे फ़ोल्डर जिनमें रीस्टोर लिखा जाएगा</string>
+    <string name="backup_error_external_unavailable">इस फ़ोन पर किसी प्रोजेक्ट फ़ोल्डर का बैकअप या रीस्टोर करने के लिए स्टोरेज की पहुँच चाहिए। कुछ भी नहीं बदला गया।</string>
+    <string name="backup_error_external_not_empty">इस फ़ोन पर एक प्रोजेक्ट फ़ोल्डर में पहले से फ़ाइलें हैं। उसे खाली करें या कोई दूसरा फ़ोल्डर चुनें। कुछ भी नहीं बदला गया।</string>
+    <string name="backup_error_external_shared">इस बैकअप के दो प्रोजेक्ट इस फ़ोन पर एक ही फ़ोल्डर इस्तेमाल करते हैं। कुछ भी नहीं बदला गया।</string>
     <string name="backup_error_newer">यह बैकअप Mobile Harness के नए संस्करण का है। पहले ऐप अपडेट करें।</string>
     <string name="backup_error_space">पर्याप्त खाली स्टोरेज नहीं है। लगभग %1$s चाहिए।</string>
     <string name="backup_error_invalid">यह फ़ाइल Mobile Harness का बैकअप नहीं है, या खराब हो चुकी है।</string>

@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -56,10 +57,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jarves.mh.R
 import com.jarves.mh.backup.BackupController
 import com.jarves.mh.backup.BackupCrypto
+import com.jarves.mh.backup.BackupManager
 import com.jarves.mh.backup.BackupJobState
 import com.jarves.mh.backup.BackupJobStatus
 import com.jarves.mh.backup.BackupOperation
 import com.jarves.mh.backup.BackupStage
+import com.jarves.mh.backup.ExternalFolderNotEmptyException
+import com.jarves.mh.backup.ExternalFolderSharedException
+import com.jarves.mh.backup.ExternalStorageUnavailableException
 import com.jarves.mh.backup.InvalidBackupException
 import com.jarves.mh.backup.NewerBackupException
 import com.jarves.mh.backup.WrongBackupPasswordException
@@ -90,6 +95,26 @@ fun BackupRestoreSection(busy: Boolean, compact: Boolean = false) {
     var pendingRestore by remember { mutableStateOf<PendingRestore?>(null) }
     var checking by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    // Pastas do aparelho que a restauração gravará, lidas do próprio backup antes da confirmação (F10).
+    var restoreFolders by remember { mutableStateOf<List<String>?>(null) }
+    LaunchedEffect(pendingRestore) {
+        val pending = pendingRestore ?: return@LaunchedEffect
+        restoreFolders = null
+        if (pending.encrypted && pending.password == null) return@LaunchedEffect
+        val result = withContext(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openInputStream(pending.uri)!!.use {
+                    BackupManager.externalFoldersIn(it, pending.password?.toCharArray())
+                }
+            }
+        }
+        result
+            .onSuccess { restoreFolders = it }
+            .onFailure { error ->
+                pendingRestore = null
+                context.toast(backupErrorText(context, error))
+            }
+    }
 
     val createLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) BackupController.start(context, BackupOperation.BACKUP, uri, backupPassword?.toCharArray())
@@ -156,6 +181,7 @@ fun BackupRestoreSection(busy: Boolean, compact: Boolean = false) {
                 encrypted = pending.encrypted,
                 // A fresh install has nothing of its own to keep, so bring everything back there.
                 settingsByDefault = compact,
+                folders = restoreFolders,
                 onDismiss = { pendingRestore = null },
                 onConfirm = { includeSettings ->
                     pendingRestore = null
@@ -288,6 +314,8 @@ private fun BackupProgressCard(job: BackupJobState) {
 private fun RestoreConfirmDialog(
     encrypted: Boolean,
     settingsByDefault: Boolean,
+    /** Pastas do aparelho que a restauração gravará; null enquanto são lidas. Confirmar exige a lista (F10). */
+    folders: List<String>?,
     onDismiss: () -> Unit,
     onConfirm: (includeSettings: Boolean) -> Unit,
 ) {
@@ -298,6 +326,14 @@ private fun RestoreConfirmDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.backup_restore_confirm_desc))
+                if (folders == null) {
+                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else if (folders.isNotEmpty()) {
+                    Text(stringResource(R.string.backup_restore_folders_title), fontWeight = FontWeight.SemiBold)
+                    folders.forEach { folder ->
+                        Text(folder, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
@@ -323,7 +359,7 @@ private fun RestoreConfirmDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(includeSettings) }) { Text(stringResource(R.string.backup_restore_action)) }
+            TextButton(onClick = { onConfirm(includeSettings) }, enabled = folders != null) { Text(stringResource(R.string.backup_restore_action)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
@@ -451,6 +487,9 @@ private fun backupErrorText(context: Context, error: Throwable): String = when (
     is WrongBackupPasswordException -> context.getString(R.string.backup_error_wrong_password)
     is NewerBackupException -> context.getString(R.string.backup_error_newer)
     is InvalidBackupException -> context.getString(R.string.backup_error_invalid)
+    is ExternalStorageUnavailableException -> context.getString(R.string.backup_error_external_unavailable)
+    is ExternalFolderNotEmptyException -> context.getString(R.string.backup_error_external_not_empty)
+    is ExternalFolderSharedException -> context.getString(R.string.backup_error_external_shared)
     else -> context.getString(R.string.backup_error_open_input)
 }
 
