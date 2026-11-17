@@ -4449,6 +4449,7 @@ private fun ProjectCard(
         )
     }
     if (showDelete) {
+        val canDeleteFolder = currentSharedStorageAccess(LocalContext.current)
         AlertDialog(
             onDismissRequest = { showDelete = false },
             title = { Text(stringResource(R.string.ws_delete_project_title)) },
@@ -4456,17 +4457,30 @@ private fun ProjectCard(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.ws_delete_project_desc))
                     if (project.externalRoot.isNotBlank()) {
+                        // F7: sem permissão a opção fica desabilitada e explica o motivo, como no painel do projeto.
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = deleteFolder, onCheckedChange = { deleteFolder = it })
+                            Checkbox(
+                                checked = deleteFolder && canDeleteFolder,
+                                onCheckedChange = { deleteFolder = it },
+                                enabled = canDeleteFolder,
+                            )
                             Text(stringResource(R.string.ws_delete_device_folder), fontSize = 13.sp)
                         }
-                        if (deleteFolder) {
+                        if (!canDeleteFolder) {
+                            Text(stringResource(R.string.ws_storage_delete_needs_access), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                        } else if (deleteFolder) {
                             Text(stringResource(R.string.ws_delete_device_folder_warning), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { onDelete(deleteFolder); showDelete = false; deleteFolder = false }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDelete(deleteFolder && canDeleteFolder)
+                    showDelete = false
+                    deleteFolder = false
+                }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
+            },
             dismissButton = { TextButton(onClick = { showDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
