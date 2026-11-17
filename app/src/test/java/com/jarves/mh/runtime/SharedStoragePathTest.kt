@@ -38,3 +38,13 @@ class SharedStoragePathTest {
         assertFalse(SharedStoragePath.isValidExternalRoot(""))
     }
 }
+
+class StoredExternalRootTest {
+    @Test
+    fun validStoredRootIsKeptAndInvalidOneIsDropped() {
+        assertEquals("/storage/emulated/0/MeuProjeto", storedExternalRoot("/storage/emulated/0/MeuProjeto"))
+        assertEquals("", storedExternalRoot("/storage/emulated/0/../../data"))
+        assertEquals("", storedExternalRoot("/data/user/0/x"))
+        assertEquals("", storedExternalRoot(""))
+    }
+}

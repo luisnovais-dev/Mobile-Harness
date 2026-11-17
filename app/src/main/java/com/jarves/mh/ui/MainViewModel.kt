@@ -52,6 +52,7 @@ import com.jarves.mh.network.ProviderApiClient
 import com.jarves.mh.network.GitHubRepository
 import com.jarves.mh.runtime.ClaudeRuntimeBridge
 import com.jarves.mh.runtime.currentSharedStorageAccess
+import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.DshRuntimeBridge
 import com.jarves.mh.runtime.AgentRegistry
 import com.jarves.mh.runtime.AgentUpdateInfo
@@ -1219,9 +1220,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun projectGuestRoot(project: Project): String = "/workspace/${project.slug}"
 
     private fun projectWorkspaceRoot(project: Project): File {
-        val base = File(getApplication<Application>().filesDir, "workspaces/${project.id}")
-            .apply { mkdirs() }
-            .canonicalFile
+        val app = getApplication<Application>()
+        val privateDir = File(app.filesDir, "workspaces/${project.id}").apply { mkdirs() }.canonicalFile
+        val base = resolveProjectWorkspace(
+            privateDir = privateDir,
+            externalRoot = project.externalRoot,
+            storageAccess = currentSharedStorageAccess(app),
+            externalExists = project.externalRoot.isNotBlank() && File(project.externalRoot).isDirectory,
+        ).apply { mkdirs() }.canonicalFile
         if (project.rootPath.isBlank()) return base
         val selected = File(base, project.rootPath).canonicalFile
         require(selected.toPath().startsWith(base.toPath())) { str(R.string.vm_unsafe_project_root) }
