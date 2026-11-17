@@ -33,9 +33,9 @@ Projects, conversations, attachments, terminal history, checkpoints, preferences
 
 Device storage folder. When the user grants storage access (sideload: storage permission; Play build: All files access) and picks a folder when creating a project, that project lives in that folder on the device, and the project session sees only that folder. The session never mounts the whole shared storage. Other apps on the device can read and write that folder, as they can any folder the user chooses. Files stay on the device. They reach the selected AI provider only when the user or the agent includes them in a request, as described in the section above. The user can also attach files from a folder on the device to a chat; the app copies only the files the user picks.
 
-Sharing a project file with another app copies it to the app's cache folder for the share, and the copy is replaced on the next share.
+Sharing a project file with another app copies it to the app's cache folder for the share. The copies are removed the next time the app opens.
 
-Backup & Restore writes a backup file only to a location the user picks with the system file picker; the app does not upload it anywhere. The backup includes the content of a project's device storage folder, and restoring refuses to write into a folder that already has files. API keys and Linux logins are included only when the user sets a backup password, and then the whole file is encrypted with AES-256-GCM using a key derived from that password. Saving the file to a cloud folder is the user's own choice and is not a transfer by the app.
+Backup & Restore writes a backup file only to a location the user picks with the system file picker; the app does not upload it anywhere. The backup includes the content of a project's device storage folder, and restoring refuses to write into a folder that already has files. Without storage access, backup and restore refuse a project that uses a device storage folder, and nothing is read or written. API keys and Linux logins are included only when the user sets a backup password, and then the whole file is encrypted with AES-256-GCM using a key derived from that password. Saving the file to a cloud folder is the user's own choice and is not a transfer by the app.
 
 ## Verification before submission
 
