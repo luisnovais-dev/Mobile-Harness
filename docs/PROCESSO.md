@@ -161,7 +161,7 @@ Não são E2E: aparência e layout (captura visual), textos e traduções (lint)
 Um ticket precisa de E2E quando muda algo que só se verifica no sistema real: permissão, seletor do sistema, montagem ou processo nativo, FileProvider, ou arquivo que outro app enxerga.
 
 - O ticket ativa de 1 a 3 casos, cada um um fluxo que o usuário faz do início ao fim. Não se cobre cada detalhe de UI.
-- O caso nasce ativo no ticket que o entrega. Não existe caso "pendente" de outro ticket.
+- O caso nasce ativo no ticket que o entrega. O harness pode listar casos de tickets futuros como NOT TESTED, só para exibição; isso não cria caso pendente no ticket atual.
 - O caso não repete o que o unitário ou a integração já provam.
 - Se o ambiente de teste não estiver disponível, o ticket não é auditado como concluído, e a pendência é dita na Spec, antes da implementação.
 
