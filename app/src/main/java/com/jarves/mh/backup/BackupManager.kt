@@ -21,6 +21,9 @@ class NotEnoughSpaceException(val requiredBytes: Long) : IOException("Not enough
 /** Restauração recusada: a pasta externa do projeto já tem arquivos (Spec #5, D2). Nada é alterado. */
 class ExternalFolderNotEmptyException : IOException("The project folder on this phone already has files")
 
+/** Restauração recusada: dois projetos do backup usam a mesma pasta do aparelho (N1). Nada é alterado. */
+class ExternalFolderSharedException : IOException("Two projects in this backup use the same folder on this phone")
+
 /** Backup ou restauração recusados: há pasta externa de projeto sem acesso ao armazenamento (Spec #5, §5). Nada é alterado. */
 class ExternalStorageUnavailableException : IOException("Storage access is needed for a project folder on this phone")
 
@@ -212,6 +215,9 @@ class BackupManager(
 
             // Sem acesso ao armazenamento, a restauração recusa antes de alterar qualquer dado (F1).
             requireExternalFoldersReachable(restoredPrefs, ExternalFolderAction.RESTORE)
+            // N1: duas pastas iguais no backup falhariam na segunda cópia, depois de gravar a primeira.
+            val roots = projects(restoredPrefs).map { it.optString("externalRoot") }.filter { it.isNotBlank() }
+            if (roots.size != roots.toSet().size) throw ExternalFolderSharedException()
 
             // D2: a non-empty external folder refuses the whole restore before anything is applied.
             projects(restoredPrefs).forEach { project ->

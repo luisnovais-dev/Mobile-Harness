@@ -331,4 +331,26 @@ class BackupManagerTest {
             assertTrue(!external.exists())
         }
     }
+
+    /** N1 (re-review): dois projetos do backup na mesma pasta não podem ser restaurados pela metade. */
+    @Test
+    fun `restore refuses two projects that share one device folder before changing anything` () {
+        val (source, _) = sourceApp()
+        val external = temp.newFolder("device", "MeuProjeto8")
+        val both = JSONArray()
+            .put(JSONObject().put("id", "p1").put("name", "A").put("externalRoot", external.path))
+            .put(JSONObject().put("id", "p2").put("name", "B").put("externalRoot", external.path))
+        external.write("README.md", "on device")
+        val stores = FakeStores(prefs = JSONObject().put("projects_json", JSONObject().put("t", "string").put("v", both.toString())))
+        val bytes = backupWithExternal(source, stores)
+        external.deleteRecursively()
+        val target = FakeStores(prefs = projectsPrefs("keep"))
+        try {
+            BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true }).restore(ByteArrayInputStream(bytes), null)
+            fail("restore should refuse projects sharing one folder")
+        } catch (expected: ExternalFolderSharedException) {
+            assertEquals(listOf("keep"), projectIds(target))
+            assertTrue(!external.exists())
+        }
+    }
 }
