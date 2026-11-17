@@ -171,4 +171,6 @@
     <string name="ws_context_folder_title">Archivos de esta carpeta</string>
     <string name="ws_context_folder_empty">Esta carpeta no tiene archivos.</string>
     <string name="ws_context_folder_unavailable">La carpeta del dispositivo no está disponible. Concede el acceso y elígela de nuevo.</string>
+    <string name="ws_delete_device_folder">Borrar también la carpeta de este teléfono</string>
+    <string name="ws_delete_device_folder_warning">La carpeta y sus archivos se borrarán de este teléfono. No se puede deshacer.</string>
 </resources>

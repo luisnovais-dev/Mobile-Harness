@@ -171,4 +171,6 @@
     <string name="ws_context_folder_title">الملفات في هذا المجلد</string>
     <string name="ws_context_folder_empty">لا توجد ملفات في هذا المجلد.</string>
     <string name="ws_context_folder_unavailable">مجلد الجهاز غير متاح. امنح الوصول واختره مرة أخرى.</string>
+    <string name="ws_delete_device_folder">احذف المجلد على هذا الهاتف أيضًا</string>
+    <string name="ws_delete_device_folder_warning">سيُحذف المجلد وملفاته من هذا الهاتف. لا يمكن التراجع عن ذلك.</string>
 </resources>

@@ -171,4 +171,6 @@
     <string name="ws_context_folder_title">Files in this folder</string>
     <string name="ws_context_folder_empty">This folder has no files.</string>
     <string name="ws_context_folder_unavailable">Device folder is not available. Grant access and choose it again.</string>
+    <string name="ws_delete_device_folder">Also delete the folder on this phone</string>
+    <string name="ws_delete_device_folder_warning">The folder and its files will be deleted from this phone. This cannot be undone.</string>
 </resources>

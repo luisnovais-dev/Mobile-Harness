@@ -171,4 +171,6 @@
     <string name="ws_context_folder_title">Αρχεία σε αυτόν τον φάκελο</string>
     <string name="ws_context_folder_empty">Ο φάκελος δεν έχει αρχεία.</string>
     <string name="ws_context_folder_unavailable">Ο φάκελος της συσκευής δεν είναι διαθέσιμος. Δώστε πρόσβαση και επιλέξτε τον ξανά.</string>
+    <string name="ws_delete_device_folder">Διαγραφή και του φακέλου σε αυτή τη συσκευή</string>
+    <string name="ws_delete_device_folder_warning">Ο φάκελος και τα αρχεία του θα διαγραφούν από τη συσκευή. Δεν μπορεί να αναιρεθεί.</string>
 </resources>

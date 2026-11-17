@@ -57,6 +57,7 @@ import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.shareCopyDestination
 import com.jarves.mh.runtime.SharedStoragePath
 import com.jarves.mh.runtime.contextFileWithinFolder
+import com.jarves.mh.runtime.shouldDeleteExternalFolder
 import com.jarves.mh.runtime.storedExternalRoot
 import com.jarves.mh.runtime.validatedNewProjectFolder
 import com.jarves.mh.runtime.DshRuntimeBridge
@@ -3934,7 +3935,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         preferences.saveProjects(_state.value.projects)
     }
 
-    fun deleteProject(projectId: String) {
+    fun deleteProject(projectId: String, deleteExternalFolder: Boolean = false) {
         val project = _state.value.projects.firstOrNull { it.id == projectId } ?: return
         if (_state.value.activeProject?.id == projectId || _state.value.isRunning || _state.value.projectTerminalRunning || _state.value.androidBuildRunning) return
         _state.update { current -> current.copy(projects = current.projects.filterNot { it.id == projectId }) }
@@ -3943,6 +3944,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val filesDir = getApplication<Application>().filesDir
             File(filesDir, "workspaces/${project.id}").deleteRecursively()
+            // RF-11: a pasta do aparelho só é apagada com confirmação explícita e raiz válida.
+            if (shouldDeleteExternalFolder(project.externalRoot, deleteExternalFolder) && currentSharedStorageAccess(getApplication())) {
+                File(project.externalRoot).deleteRecursively()
+            }
             terminalHistoryFile(project.id).delete()
             androidBuildRecordFile(project.id).delete()
             preferences.deleteProjectChats(project.id)

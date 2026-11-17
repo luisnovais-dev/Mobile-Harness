@@ -61,3 +61,16 @@ class NewProjectFolderTest {
         assertNull(validatedNewProjectFolder("/storage/emulated/0/../../data", storageAccess = true))
     }
 }
+
+class ExternalFolderDeletionTest {
+    private val root = "/storage/emulated/0/MeuProjeto"
+
+    @Test
+    fun deletesOnlyWhenConfirmedAndRootIsValid() {
+        assertTrue(shouldDeleteExternalFolder(root, confirmed = true))
+        assertFalse(shouldDeleteExternalFolder(root, confirmed = false))
+        assertFalse(shouldDeleteExternalFolder("", confirmed = true))
+        assertFalse(shouldDeleteExternalFolder("/storage/emulated/0", confirmed = true))
+        assertFalse(shouldDeleteExternalFolder("/data/user/0/com.jarves.mh/files", confirmed = true))
+    }
+}

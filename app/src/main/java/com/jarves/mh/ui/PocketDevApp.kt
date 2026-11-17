@@ -3651,7 +3651,7 @@ private fun ProjectsScreen(
     onDisconnectGitHub: () -> Unit,
     onCloneGitHub: (GitHubRepository, String) -> Unit,
     onRenameProject: (String, String) -> Unit,
-    onDeleteProject: (String) -> Unit,
+    onDeleteProject: (String, Boolean) -> Unit,
     onSettings: () -> Unit,
     onPing: () -> Unit,
     onToggleTheme: () -> Unit,
@@ -3923,7 +3923,7 @@ private fun ProjectsScreen(
                         buildRunning = state.androidBuildRunning && state.activeProject?.id == project.id,
                         onOpen = { onOpen(project) },
                         onRename = { onRenameProject(project.id, it) },
-                        onDelete = { onDeleteProject(project.id) },
+                        onDelete = { deleteFolder -> onDeleteProject(project.id, deleteFolder) },
                     )
                 }
             }
@@ -4319,9 +4319,10 @@ private fun ProjectCard(
     buildRunning: Boolean,
     onOpen: () -> Unit,
     onRename: (String) -> Unit,
-    onDelete: () -> Unit,
+    onDelete: (Boolean) -> Unit,
 ) {
     var menuOpen by rememberSaveable(project.id) { mutableStateOf(false) }
+    var deleteFolder by rememberSaveable(project.id) { mutableStateOf(false) }
     var showRename by rememberSaveable(project.id) { mutableStateOf(false) }
     var showDelete by rememberSaveable(project.id) { mutableStateOf(false) }
     var renameText by rememberSaveable(project.id) { mutableStateOf(project.name) }
@@ -4400,8 +4401,21 @@ private fun ProjectCard(
         AlertDialog(
             onDismissRequest = { showDelete = false },
             title = { Text(stringResource(R.string.ws_delete_project_title)) },
-            text = { Text(stringResource(R.string.ws_delete_project_desc)) },
-            confirmButton = { TextButton(onClick = { onDelete(); showDelete = false }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.ws_delete_project_desc))
+                    if (project.externalRoot.isNotBlank()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(checked = deleteFolder, onCheckedChange = { deleteFolder = it })
+                            Text(stringResource(R.string.ws_delete_device_folder), fontSize = 13.sp)
+                        }
+                        if (deleteFolder) {
+                            Text(stringResource(R.string.ws_delete_device_folder_warning), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { onDelete(deleteFolder); showDelete = false; deleteFolder = false }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
             dismissButton = { TextButton(onClick = { showDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }

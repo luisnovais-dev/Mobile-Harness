@@ -171,4 +171,6 @@
     <string name="ws_context_folder_title">इस फ़ोल्डर की फ़ाइलें</string>
     <string name="ws_context_folder_empty">इस फ़ोल्डर में कोई फ़ाइल नहीं है।</string>
     <string name="ws_context_folder_unavailable">डिवाइस फ़ोल्डर उपलब्ध नहीं है। पहुँच दें और उसे फिर से चुनें।</string>
+    <string name="ws_delete_device_folder">इस फ़ोन पर का फ़ोल्डर भी हटाएँ</string>
+    <string name="ws_delete_device_folder_warning">फ़ोल्डर और उसकी फ़ाइलें इस फ़ोन से हट जाएँगी। इसे वापस नहीं लाया जा सकता।</string>
 </resources>

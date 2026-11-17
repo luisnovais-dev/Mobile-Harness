@@ -171,4 +171,6 @@
     <string name="ws_context_folder_title">此文件夹中的文件</string>
     <string name="ws_context_folder_empty">此文件夹中没有文件。</string>
     <string name="ws_context_folder_unavailable">设备文件夹不可用。请授予权限后重新选择。</string>
+    <string name="ws_delete_device_folder">同时删除本机上的文件夹</string>
+    <string name="ws_delete_device_folder_warning">文件夹及其文件将从本机删除，且无法撤销。</string>
 </resources>
