@@ -195,7 +195,7 @@ class AntigravityRuntimeBridge(
     @Volatile private var taskStartedAtElapsedRealtime = 0L
     @Volatile private var lastForegroundProgressAt = 0L
 
-    fun configureProjectBase(projectId: String, base: File) = checkpoints.configureProjectBase(projectId, base)
+    fun configureProjectBase(projectId: String, resolve: () -> File) = checkpoints.configureProjectBase(projectId, resolve)
     fun configureProjectRoot(projectId: String, rootPath: String) = checkpoints.configureProjectRoot(projectId, rootPath)
 
     /**

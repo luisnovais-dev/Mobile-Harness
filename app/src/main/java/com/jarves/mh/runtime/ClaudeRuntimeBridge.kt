@@ -733,15 +733,15 @@ class ClaudeRuntimeBridge(
         return sb.toString()
     }
 
-    private val projectBases = ConcurrentHashMap<String, File>()
+    private val projectBases = ConcurrentHashMap<String, () -> File>()
 
-    /** Base do projeto escolhida pelo ViewModel (pasta externa ou área privada). Spec #5, RF-7. */
-    fun configureProjectBase(projectId: String, base: File) {
-        projectBases[projectId] = base.canonicalFile
+    /** Base do projeto resolvida a cada uso (pasta externa com permissão, senão área privada). Spec #5, RF-7 e RF-14. */
+    fun configureProjectBase(projectId: String, resolve: () -> File) {
+        projectBases[projectId] = resolve
     }
 
     private fun ensureWorkspace(projectId: String): File {
-        val base = (projectBases[projectId] ?: File(context.filesDir, "workspaces/$projectId")).apply { mkdirs() }.canonicalFile
+        val base = checkedProjectBase(projectBases[projectId]?.invoke() ?: File(context.filesDir, "workspaces/$projectId"), context.filesDir)
         val rootPath = projectRoots[projectId].orEmpty()
         if (rootPath.isBlank()) return base
         val selected = File(base, rootPath).canonicalFile

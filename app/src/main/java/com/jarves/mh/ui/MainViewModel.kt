@@ -2108,10 +2108,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun configureBridgeRoots(project: Project) {
         val projectId = project.id
         val rootPath = project.rootPath
-        val base = projectBaseDir(project)
-        claudeRuntime.configureProjectBase(projectId, base)
-        dshRuntime.configureProjectBase(projectId, base)
-        antigravityRuntime.configureProjectBase(projectId, base)
+        // Resolvida a cada uso: a permissão pode ser revogada depois que o projeto abriu (RF-14).
+        val resolve = { projectBaseDir(project) }
+        claudeRuntime.configureProjectBase(projectId, resolve)
+        dshRuntime.configureProjectBase(projectId, resolve)
+        antigravityRuntime.configureProjectBase(projectId, resolve)
         claudeRuntime.configureProjectRoot(projectId, rootPath)
         dshRuntime.configureProjectRoot(projectId, rootPath)
         antigravityRuntime.configureProjectRoot(projectId, rootPath)

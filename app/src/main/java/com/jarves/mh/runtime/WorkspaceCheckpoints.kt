@@ -29,15 +29,21 @@ class WorkspaceCheckpoints(
 
     private val projectRoots = ConcurrentHashMap<String, String>()
 
-    private val projectBases = java.util.concurrent.ConcurrentHashMap<String, File>()
+    private val projectBases = java.util.concurrent.ConcurrentHashMap<String, () -> File>()
 
-    /** Base do projeto escolhida pelo ViewModel (pasta externa ou área privada). Spec #5, RF-7. */
-    fun configureProjectBase(projectId: String, base: File) {
-        projectBases[projectId] = base.canonicalFile
+    /** Base fixa do projeto. */
+    fun configureProjectBase(projectId: String, base: File) = configureProjectBase(projectId) { base }
+
+    /**
+     * Base do projeto resolvida a cada uso (Spec #5, RF-4 e RF-14): sem permissão ou sem a pasta,
+     * a resolução devolve a área privada, e a sessão não usa o caminho externo guardado antes.
+     */
+    fun configureProjectBase(projectId: String, resolve: () -> File) {
+        projectBases[projectId] = resolve
     }
 
     fun ensureWorkspace(projectId: String): File {
-        val base = (projectBases[projectId] ?: File(filesDir, "workspaces/$projectId")).apply { mkdirs() }.canonicalFile
+        val base = checkedProjectBase(projectBases[projectId]?.invoke() ?: File(filesDir, "workspaces/$projectId"), filesDir)
         val rootPath = projectRoots[projectId].orEmpty()
         if (rootPath.isBlank()) return base
         val selected = File(base, rootPath).canonicalFile
@@ -313,4 +319,15 @@ class WorkspaceCheckpoints(
             "venv",
         )
     }
+}
+
+/**
+ * Base de trabalho confirmada no uso. A área privada é criada; uma pasta externa nunca é criada aqui:
+ * se não existir, o uso falha em vez de montar caminho inexistente (Spec #5, RF-14).
+ */
+internal fun checkedProjectBase(base: File, filesDir: File): File {
+    val canonical = base.canonicalFile
+    if (canonical.toPath().startsWith(filesDir.canonicalFile.toPath())) return canonical.apply { mkdirs() }
+    check(canonical.isDirectory) { "Project folder on the device is unavailable" }
+    return canonical
 }
