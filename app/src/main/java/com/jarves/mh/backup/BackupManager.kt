@@ -25,6 +25,9 @@ class ExternalFolderNotEmptyException : IOException("The project folder on this 
 /** Restauração recusada: dois projetos do backup usam a mesma pasta do aparelho (N1). Nada é alterado. */
 class ExternalFolderSharedException : IOException("Two projects in this backup use the same folder on this phone")
 
+/** Restauração recusada: a pasta do backup já é de um projeto deste aparelho (N10). Nada é alterado. */
+class ExternalFolderInUseException : IOException("A project on this phone already uses a folder from this backup")
+
 /** Backup ou restauração recusados: há pasta externa de projeto sem acesso ao armazenamento (Spec #5, §5). Nada é alterado. */
 class ExternalStorageUnavailableException : IOException("Storage access is needed for a project folder on this phone")
 
@@ -227,7 +230,7 @@ class BackupManager(
             val localRoots = projects(stores.exportPrefs()).map { it.optString("externalRoot") }.filter { it.isNotBlank() }
             roots.firstOrNull { root -> localRoots.any { foldersOverlap(root, it) } }?.let { root ->
                 audit(ExternalFolderAction.RESTORE, "refused", root)
-                throw ExternalFolderSharedException()
+                throw ExternalFolderInUseException()
             }
 
             // D2: a non-empty external folder refuses the whole restore before anything is applied.

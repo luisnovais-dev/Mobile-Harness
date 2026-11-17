@@ -409,8 +409,9 @@ class BackupManagerTest {
         try {
             BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true }).restore(ByteArrayInputStream(bytes), null)
             fail("restore should refuse a folder another project on this phone uses")
-        } catch (expected: ExternalFolderSharedException) {
+        } catch (expected: ExternalFolderInUseException) {
             assertEquals(listOf("x"), projectIds(target))
+            assertEquals(0, shared.list()?.size ?: -1)
         }
     }
 }

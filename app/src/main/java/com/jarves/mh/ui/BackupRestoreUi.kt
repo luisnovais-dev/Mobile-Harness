@@ -62,6 +62,7 @@ import com.jarves.mh.backup.BackupJobState
 import com.jarves.mh.backup.BackupJobStatus
 import com.jarves.mh.backup.BackupOperation
 import com.jarves.mh.backup.BackupStage
+import com.jarves.mh.backup.ExternalFolderInUseException
 import com.jarves.mh.backup.ExternalFolderNotEmptyException
 import com.jarves.mh.backup.ExternalFolderSharedException
 import com.jarves.mh.backup.ExternalStorageUnavailableException
@@ -490,6 +491,7 @@ private fun backupErrorText(context: Context, error: Throwable): String = when (
     is ExternalStorageUnavailableException -> context.getString(R.string.backup_error_external_unavailable)
     is ExternalFolderNotEmptyException -> context.getString(R.string.backup_error_external_not_empty)
     is ExternalFolderSharedException -> context.getString(R.string.backup_error_external_shared)
+    is ExternalFolderInUseException -> context.getString(R.string.backup_error_external_in_use)
     else -> context.getString(R.string.backup_error_open_input)
 }
 

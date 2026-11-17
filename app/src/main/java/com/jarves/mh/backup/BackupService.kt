@@ -203,6 +203,7 @@ class BackupService : Service() {
         is ExternalStorageUnavailableException -> str(R.string.backup_error_external_unavailable)
         is ExternalFolderNotEmptyException -> str(R.string.backup_error_external_not_empty)
         is ExternalFolderSharedException -> str(R.string.backup_error_external_shared)
+        is ExternalFolderInUseException -> str(R.string.backup_error_external_in_use)
         else -> error.message?.takeIf(String::isNotBlank) ?: error.javaClass.simpleName
     }
 
