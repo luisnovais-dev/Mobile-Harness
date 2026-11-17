@@ -45,12 +45,3 @@ internal enum class StorageRequestFallback { NONE, OPEN_APP_SETTINGS }
  */
 internal fun storageRequestFallback(isPlayBuild: Boolean, granted: Boolean, canAskAgain: Boolean): StorageRequestFallback =
     if (isPlayBuild || granted || canAskAgain) StorageRequestFallback.NONE else StorageRequestFallback.OPEN_APP_SETTINGS
-
-/** Argumentos de bind do armazenamento compartilhado; vazio quando não há acesso (argv inalterado). Sem efeitos colaterais. */
-internal fun sharedStorageBinds(access: Boolean): List<String> =
-    if (access) listOf("-b", "/storage/emulated/0:/sdcard") else emptyList()
-
-/** Cria o ponto de montagem `rootfs/sdcard` quando há acesso; sem acesso, não cria nada. */
-internal fun ensureSharedStorageMountPoint(access: Boolean, rootfs: java.io.File) {
-    if (access) java.io.File(rootfs, "sdcard").mkdirs()
-}
