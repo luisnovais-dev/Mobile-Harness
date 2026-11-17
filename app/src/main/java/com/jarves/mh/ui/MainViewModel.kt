@@ -58,6 +58,7 @@ import com.jarves.mh.runtime.ExternalFolderAction
 import com.jarves.mh.runtime.ExternalFolderAuditLog
 import com.jarves.mh.runtime.SharedStoragePath
 import com.jarves.mh.runtime.clearShareCopies
+import com.jarves.mh.runtime.attachmentMimeType
 import com.jarves.mh.runtime.contextFileWithinFolder
 import com.jarves.mh.runtime.shouldDeleteExternalFolder
 import com.jarves.mh.runtime.storedExternalRoot
@@ -4783,8 +4784,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 cursor.getColumnIndex(OpenableColumns.SIZE).takeIf { it >= 0 }?.let { declaredSize = cursor.getLong(it) }
             }
         }
-        val mimeType = resolver.getType(uri).orEmpty().ifBlank { "application/octet-stream" }
         val extension = displayName.substringAfterLast('.', "").lowercase()
+        // F5: arquivo de pasta externa não tem tipo do provedor; o tipo cai para a extensão.
+        val mimeType = attachmentMimeType(resolver.getType(uri), extension)
         val supportedTextExtensions = setOf(
             "txt", "md", "markdown", "json", "jsonl", "csv", "tsv", "xml", "yaml", "yml", "log",
             "kt", "kts", "java", "py", "js", "mjs", "cjs", "ts", "tsx", "jsx", "html", "htm",
