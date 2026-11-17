@@ -1584,7 +1584,9 @@ class RuntimeInstaller(private val context: Context) {
                 }
             }
             // Armazenamento compartilhado só com permissão concedida (Spec #4).
-            addAll(sharedStorageBinds(sharedStorageAccess(), rootfs))
+            val sharedAccess = sharedStorageAccess()
+            ensureSharedStorageMountPoint(sharedAccess, rootfs)
+            addAll(sharedStorageBinds(sharedAccess))
             add("-b")
             add("${workspace.absolutePath}:$guestWorkspacePath")
             add("-b")
