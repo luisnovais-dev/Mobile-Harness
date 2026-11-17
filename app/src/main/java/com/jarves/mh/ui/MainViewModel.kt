@@ -229,6 +229,46 @@ internal fun sanitizeTerminalOutput(text: String): String = text
     .replace(ANSI_TERMINAL_SEQUENCE, "")
     .filter { it == '\n' || it == '\r' || it == '\t' || it.code >= 0x20 }
 
+/** Number of leading bytes of [buf] that form complete UTF-8 characters (a trailing partial sequence is excluded). */
+internal fun completeUtf8PrefixLength(buf: ByteArray): Int {
+    if (buf.isEmpty()) return 0
+    var lead = buf.size - 1
+    while (lead >= 0 && (buf[lead].toInt() and 0xC0) == 0x80) lead-- // skip continuation bytes (10xxxxxx)
+    if (lead < 0) return buf.size // only continuation bytes (malformed) — do not hold back
+    val b = buf[lead].toInt() and 0xFF
+    val need = when {
+        b and 0x80 == 0x00 -> 1 // 0xxxxxxx
+        b and 0xE0 == 0xC0 -> 2 // 110xxxxx
+        b and 0xF0 == 0xE0 -> 3 // 1110xxxx
+        b and 0xF8 == 0xF0 -> 4 // 11110xxx
+        else -> return buf.size // invalid lead byte — decode as-is
+    }
+    return if (buf.size - lead >= need) buf.size else lead
+}
+
+/**
+ * Decodes a byte stream read in arbitrary chunks as UTF-8 without corrupting a multibyte
+ * character that straddles a read boundary: a trailing incomplete sequence is held back and
+ * prepended to the next chunk. [flush] returns whatever bytes remain at end of stream.
+ */
+internal class Utf8StreamDecoder {
+    private var carry = ByteArray(0)
+
+    fun decode(chunk: ByteArray, length: Int): String {
+        val buffer = if (carry.isEmpty()) chunk.copyOf(length) else carry + chunk.copyOf(length)
+        val complete = completeUtf8PrefixLength(buffer)
+        carry = if (complete == buffer.size) ByteArray(0) else buffer.copyOfRange(complete, buffer.size)
+        return buffer.decodeToString(0, complete)
+    }
+
+    fun flush(): String {
+        if (carry.isEmpty()) return ""
+        val rest = carry.decodeToString()
+        carry = ByteArray(0)
+        return rest
+    }
+}
+
 private val ANTIGRAVITY_MODEL_EFFORT = Regex("^(.*)-(low|medium|high)$")
 
 private fun antigravityEffortFromModel(model: String): String? =
@@ -704,6 +744,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val native = proc as? NativeSpawnProcess
                     var offset = 0L
                     val streamed = StringBuilder()
+                    val decoder = Utf8StreamDecoder()
                     var autoConfirmed = false
                     while (proc.isAlive || (native?.outputFile?.length() ?: 0L) > offset) {
                         val file = native?.outputFile
@@ -719,7 +760,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                         if (count > 0) {
                             offset += count
-                            streamed.append(bytes.decodeToString(0, count))
+                            streamed.append(decoder.decode(bytes, count))
                             _terminalLiveOutput.value = sanitizeTerminalOutput(streamed.toString())
                                 .trimEnd()
                                 .takeLast(MAX_PROJECT_TERMINAL_OUTPUT)
@@ -730,6 +771,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         }
                     }
+                    streamed.append(decoder.flush())
                     val exit = proc.waitFor()
                     runCatching { proc.outputStream.close() }
                     val out = sanitizeTerminalOutput(streamed.toString()).trim()
@@ -1052,6 +1094,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             ?: return ProjectTerminalResult(str(R.string.vm_unsupported_terminal_process), 1, cwd)
         var offset = 0L
         val output = StringBuilder()
+        val decoder = Utf8StreamDecoder()
         var autoConfirmed = false
         while (process.isAlive || native.outputFile.length() > offset) {
             val available = native.outputFile.length() - offset
@@ -1066,7 +1109,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             if (count > 0) {
                 offset += count
-                output.append(bytes.decodeToString(0, count))
+                output.append(decoder.decode(bytes, count))
                 val visible = sanitizeTerminalOutput(output.toString().substringBefore(marker))
                     .takeLast(MAX_PROJECT_TERMINAL_OUTPUT)
                 if (!autoConfirmed && shouldAutoConfirmPackageCommand(command, visible)) {
@@ -1088,6 +1131,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         val exitCode = process.waitFor()
         runCatching { process.outputStream.close() }
+        output.append(decoder.flush())
         val raw = output.toString()
         val cwdAfter = raw.substringAfter(marker, "")
             .lineSequence()
@@ -1445,6 +1489,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 RuntimeTaskController.stopAction = ::cancelAndroidBuild
                 val native = process as? NativeSpawnProcess ?: error(str(R.string.an_unsupported_build_process))
                 var offset = 0L
+                val decoder = Utf8StreamDecoder()
                 while (process.isAlive || native.outputFile.length() > offset) {
                     val available = native.outputFile.length() - offset
                     if (available <= 0L) {
@@ -1458,7 +1503,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     if (count > 0) {
                         offset += count
-                        val chunk = sanitizeTerminalOutput(bytes.decodeToString(0, count))
+                        val chunk = sanitizeTerminalOutput(decoder.decode(bytes, count))
                         _state.update { current ->
                             val nextStage = inferAndroidBuildStage(chunk, current.androidBuildStage)
                             current.copy(
@@ -4044,23 +4089,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadProjectDirectory(relativePath: String) {
         val project = _state.value.activeProject ?: return
-        val existingEntries = _state.value.workspaceFiles
         viewModelScope.launch {
-            val (children, updatedEntries) = withContext(Dispatchers.IO) {
-                val loadedChildren = readWorkspaceDirectory(project, relativePath)
+            val loadedChildren = withContext(Dispatchers.IO) { readWorkspaceDirectory(project, relativePath) }
+            if (_state.value.activeProject?.id != project.id) return@launch
+            // Merge against `current.workspaceFiles` inside update{}, not a snapshot captured before
+            // the IO read: otherwise a concurrent refresh/folder-count update between capture and
+            // write is silently dropped (lost update).
+            _state.update { current ->
                 val prefix = relativePath.trim('/').let { if (it.isBlank()) "" else "$it/" }
-                val retained = existingEntries.filterNot { entry ->
+                val retained = current.workspaceFiles.filterNot { entry ->
                     entry.path.startsWith(prefix) && entry.path.removePrefix(prefix).let { !it.contains('/') }
                 }
                 val sorted = sortWorkspaceEntries((retained + loadedChildren).distinctBy { it.path }).map { entry ->
                     if (entry.path == relativePath) entry.copy(childCount = loadedChildren.size) else entry
                 }
-                loadedChildren to sorted
+                current.copy(workspaceFiles = sorted)
             }
-            if (_state.value.activeProject?.id != project.id) return@launch
-            _state.update { current -> current.copy(workspaceFiles = updatedEntries) }
-            updateFolderMetadata(project, relativePath, children.size)
-            loadMissingFolderCounts(project, children)
+            updateFolderMetadata(project, relativePath, loadedChildren.size)
+            loadMissingFolderCounts(project, loadedChildren)
         }
     }
 
@@ -5277,6 +5323,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             kotlinx.coroutines.delay(300)
+            // The user may have hit Stop (which clears the active request via the stop event) or
+            // started another prompt during the delay; don't resurrect a session no longer wanted.
+            if (activeRuntimeRequest !== request || !_state.value.isRunning) return@launch
             request.runtime.startSession(
                 request.project.id,
                 request.project.slug,
