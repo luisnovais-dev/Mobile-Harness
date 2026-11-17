@@ -7,6 +7,13 @@ ADB_SERIAL="${ADB_SERIAL:-}"
 REMOTE="${POCKETDEV_REMOTE_DIR:-/data/adb/pocketdev-bundle}"
 VERSION="${POCKETDEV_CORE_VERSION:-2026.09.5}"
 DNS_SERVER="${POCKETDEV_DNS:-1.1.1.1}"
+
+# These overridable values are interpolated into `su -c '… bash -lc "…"'` and `rm -rf` on the
+# device, so a crafted override would run as root. Accept only safe shapes before using them.
+[[ "$REMOTE" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "POCKETDEV_REMOTE_DIR must be an absolute path of [A-Za-z0-9._/-]." >&2; exit 1; }
+[[ "$VERSION" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "POCKETDEV_CORE_VERSION must match [A-Za-z0-9._-]." >&2; exit 1; }
+[[ "$DNS_SERVER" =~ ^[0-9A-Fa-f.:]+$ ]] || { echo "POCKETDEV_DNS must be a bare IPv4/IPv6 address." >&2; exit 1; }
+
 ROOTFS_FILE="ubuntu-base-20.04.5-base-arm64.tar.gz"
 ROOTFS_SHA256="f9b999afb4c4b10193087ea8c11be36d688f19e609b05179b571f29357954b52"
 ROOTFS_URL="https://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/${ROOTFS_FILE}"
