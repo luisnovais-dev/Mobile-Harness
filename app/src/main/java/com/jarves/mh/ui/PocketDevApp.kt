@@ -240,6 +240,9 @@ import com.jarves.mh.model.WorkspaceEntry
 import com.jarves.mh.model.projectSlug
 import com.jarves.mh.runtime.RuntimeExecutionService
 import com.jarves.mh.runtime.RuntimeSetupService
+import com.jarves.mh.runtime.StorageRequestFallback
+import com.jarves.mh.runtime.currentSharedStorageAccess
+import com.jarves.mh.runtime.storageRequestFallback
 import com.jarves.mh.runtime.supportsArm64Runtime
 import com.jarves.mh.runtime.AntigravityAuthStatus
 import com.jarves.mh.runtime.AndroidAction
@@ -4552,7 +4555,24 @@ private fun WorkspaceScreen(
     )
     val storageAccessLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { onRefreshAndroidHealth() },
+        onResult = {
+            onRefreshAndroidHealth()
+            // Negação permanente: o diálogo não volta, então a saída é a tela do app.
+            val activity = context as? android.app.Activity
+            val canAskAgain = activity == null ||
+                activity.shouldShowRequestPermissionRationale(android.Manifest.permission.READ_EXTERNAL_STORAGE) ||
+                activity.shouldShowRequestPermissionRationale(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            val fallback = storageRequestFallback(
+                isPlayBuild = BuildConfig.IS_PLAY_BUILD,
+                granted = currentSharedStorageAccess(context),
+                canAskAgain = canAskAgain,
+            )
+            if (fallback == StorageRequestFallback.OPEN_APP_SETTINGS) {
+                context.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")),
+                )
+            }
+        },
     )
     val allFilesAccessLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),

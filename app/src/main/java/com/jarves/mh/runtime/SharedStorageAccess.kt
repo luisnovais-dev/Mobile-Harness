@@ -35,6 +35,17 @@ internal fun currentSharedStorageAccess(context: Context): Boolean = SharedStora
     readGranted = context.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED,
 )
 
+/** Ação extra quando o pedido de permissão não resolve, por negação permanente. */
+internal enum class StorageRequestFallback { NONE, OPEN_APP_SETTINGS }
+
+/**
+ * Sideload: sem a permissão e sem poder pedir de novo (negação permanente), o diálogo
+ * não aparece mais; a única saída é a tela de configurações do app.
+ * Play: o pedido é feito na tela de acesso a todos os arquivos, então não há fallback aqui.
+ */
+internal fun storageRequestFallback(isPlayBuild: Boolean, granted: Boolean, canAskAgain: Boolean): StorageRequestFallback =
+    if (isPlayBuild || granted || canAskAgain) StorageRequestFallback.NONE else StorageRequestFallback.OPEN_APP_SETTINGS
+
 /** Argumentos de bind do armazenamento compartilhado; vazio quando não há acesso (argv inalterado). */
 internal fun sharedStorageBinds(access: Boolean, rootfs: java.io.File): List<String> {
     if (!access) return emptyList()
