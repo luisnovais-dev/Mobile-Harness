@@ -58,6 +58,9 @@
     <string name="an_health_tools_title">Инструменты разработки Android</string>
     <string name="an_health_tools_ok">Android SDK, Gradle и Java установлены.</string>
     <string name="an_health_tools_missing">Стек разработки Android не установлен.</string>
+    <string name="an_health_shared_storage_title">Память устройства</string>
+    <string name="an_health_shared_storage_ok">Сеансы проекта могут читать и записывать память устройства.</string>
+    <string name="an_health_shared_storage_missing">Разрешите доступ к файлам, чтобы сеансы проекта могли использовать память устройства. Без этого проекты останутся в приложении.</string>
     <string name="an_health_project_title">Проект Android</string>
     <string name="an_health_project_ok">Проект найден в %1$s.</string>
     <string name="an_health_project_missing">Проект Android Gradle не обнаружен.</string>

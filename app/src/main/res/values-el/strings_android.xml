@@ -58,6 +58,9 @@
     <string name="an_health_tools_title">Εργαλεία ανάπτυξης Android</string>
     <string name="an_health_tools_ok">Τα Android SDK, Gradle και Java είναι εγκατεστημένα.</string>
     <string name="an_health_tools_missing">Τα εργαλεία ανάπτυξης Android δεν είναι εγκατεστημένα.</string>
+    <string name="an_health_shared_storage_title">Αποθηκευτικός χώρος συσκευής</string>
+    <string name="an_health_shared_storage_ok">Οι συνεδρίες έργου μπορούν να διαβάζουν και να γράφουν στον αποθηκευτικό χώρο της συσκευής.</string>
+    <string name="an_health_shared_storage_missing">Επιτρέψτε την πρόσβαση σε αρχεία ώστε οι συνεδρίες έργου να χρησιμοποιούν τον αποθηκευτικό χώρο. Χωρίς αυτήν, τα έργα μένουν στην εφαρμογή.</string>
     <string name="an_health_project_title">Έργο Android</string>
     <string name="an_health_project_ok">Εντοπίστηκε έργο στο %1$s.</string>
     <string name="an_health_project_missing">Δεν εντοπίστηκε έργο Android Gradle.</string>

@@ -58,6 +58,9 @@
     <string name="an_health_tools_title">Herramientas de desarrollo Android</string>
     <string name="an_health_tools_ok">Android SDK, Gradle y Java están instalados.</string>
     <string name="an_health_tools_missing">El entorno de desarrollo Android no está instalado.</string>
+    <string name="an_health_shared_storage_title">Almacenamiento del dispositivo</string>
+    <string name="an_health_shared_storage_ok">Las sesiones del proyecto pueden leer y escribir en el almacenamiento del dispositivo.</string>
+    <string name="an_health_shared_storage_missing">Permite el acceso a archivos para que las sesiones del proyecto usen el almacenamiento del dispositivo. Sin él, los proyectos quedan en la app.</string>
     <string name="an_health_project_title">Proyecto Android</string>
     <string name="an_health_project_ok">Proyecto detectado en %1$s.</string>
     <string name="an_health_project_missing">No se detectó ningún proyecto Android Gradle.</string>

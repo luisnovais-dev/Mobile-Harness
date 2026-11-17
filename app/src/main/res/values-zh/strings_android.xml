@@ -58,6 +58,9 @@
     <string name="an_health_tools_title">Android 开发工具</string>
     <string name="an_health_tools_ok">已安装 Android SDK、Gradle 和 Java。</string>
     <string name="an_health_tools_missing">未安装 Android 开发环境。</string>
+    <string name="an_health_shared_storage_title">设备存储</string>
+    <string name="an_health_shared_storage_ok">项目会话可以读写设备存储。</string>
+    <string name="an_health_shared_storage_missing">允许文件访问，以便项目会话使用设备存储。否则，项目只能保留在应用内。</string>
     <string name="an_health_project_title">Android 项目</string>
     <string name="an_health_project_ok">已在 %1$s 检测到项目。</string>
     <string name="an_health_project_missing">未检测到 Android Gradle 项目。</string>

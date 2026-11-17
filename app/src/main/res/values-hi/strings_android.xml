@@ -58,6 +58,9 @@
     <string name="an_health_tools_title">Android डेवलपमेंट टूल</string>
     <string name="an_health_tools_ok">Android SDK, Gradle और Java इंस्टॉल हैं।</string>
     <string name="an_health_tools_missing">Android डेवलपमेंट स्टैक इंस्टॉल नहीं है।</string>
+    <string name="an_health_shared_storage_title">डिवाइस स्टोरेज</string>
+    <string name="an_health_shared_storage_ok">प्रोजेक्ट सत्र डिवाइस स्टोरेज को पढ़ और लिख सकते हैं।</string>
+    <string name="an_health_shared_storage_missing">फ़ाइल एक्सेस की अनुमति दें ताकि प्रोजेक्ट सत्र डिवाइस स्टोरेज का उपयोग कर सकें। इसके बिना, प्रोजेक्ट ऐप के भीतर ही रहेंगे।</string>
     <string name="an_health_project_title">Android प्रोजेक्ट</string>
     <string name="an_health_project_ok">प्रोजेक्ट %1$s में मिला।</string>
     <string name="an_health_project_missing">कोई Android Gradle प्रोजेक्ट नहीं मिला।</string>

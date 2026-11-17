@@ -58,6 +58,9 @@
     <string name="an_health_tools_title">أدوات تطوير Android</string>
     <string name="an_health_tools_ok">تم تثبيت Android SDK وGradle وJava.</string>
     <string name="an_health_tools_missing">حزمة تطوير Android غير مثبتة.</string>
+    <string name="an_health_shared_storage_title">تخزين الجهاز</string>
+    <string name="an_health_shared_storage_ok">يمكن لجلسات المشروع القراءة والكتابة في تخزين الجهاز.</string>
+    <string name="an_health_shared_storage_missing">اسمح بالوصول إلى الملفات حتى تتمكن جلسات المشروع من استخدام تخزين الجهاز. بدونه تبقى المشاريع داخل التطبيق.</string>
     <string name="an_health_project_title">مشروع Android</string>
     <string name="an_health_project_ok">تم اكتشاف المشروع في %1$s.</string>
     <string name="an_health_project_missing">لم يتم اكتشاف مشروع Android Gradle.</string>
