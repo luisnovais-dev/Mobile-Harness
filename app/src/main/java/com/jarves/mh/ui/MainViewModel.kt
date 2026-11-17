@@ -1220,15 +1220,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun projectGuestRoot(project: Project): String = "/workspace/${project.slug}"
 
-    private fun projectWorkspaceRoot(project: Project): File {
+    /** Pasta base do projeto: externa quando disponível, senão a área privada (Spec #5, RF-4). */
+    private fun projectBaseDir(project: Project): File {
         val app = getApplication<Application>()
         val privateDir = File(app.filesDir, "workspaces/${project.id}").apply { mkdirs() }.canonicalFile
-        val base = resolveProjectWorkspace(
+        return resolveProjectWorkspace(
             privateDir = privateDir,
             externalRoot = project.externalRoot,
             storageAccess = currentSharedStorageAccess(app),
             externalExists = project.externalRoot.isNotBlank() && File(project.externalRoot).isDirectory,
         ).apply { mkdirs() }.canonicalFile
+    }
+
+    private fun projectWorkspaceRoot(project: Project): File {
+        val base = projectBaseDir(project)
         if (project.rootPath.isBlank()) return base
         val selected = File(base, project.rootPath).canonicalFile
         require(selected.toPath().startsWith(base.toPath())) { str(R.string.vm_unsafe_project_root) }
@@ -2075,7 +2080,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Keeps both agent bridges mapped to the same workspace root; the active one is used. */
-    private fun configureBridgeRoots(projectId: String, rootPath: String) {
+    private fun configureBridgeRoots(project: Project) {
+        val projectId = project.id
+        val rootPath = project.rootPath
+        val base = projectBaseDir(project)
+        claudeRuntime.configureProjectBase(projectId, base)
+        dshRuntime.configureProjectBase(projectId, base)
+        antigravityRuntime.configureProjectBase(projectId, base)
         claudeRuntime.configureProjectRoot(projectId, rootPath)
         dshRuntime.configureProjectRoot(projectId, rootPath)
         antigravityRuntime.configureProjectRoot(projectId, rootPath)
@@ -3020,7 +3031,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             return
         }
-        configureBridgeRoots(project.id, project.rootPath)
+        configureBridgeRoots(project)
         val terminal = loadProjectTerminal(project)
         val suggestedRoot = if (project.rootPath.isBlank()) detectNestedProjectRoot(project) else null
         val chats = preferences.loadProjectChats(project.id).ifEmpty {
@@ -3205,7 +3216,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             slug = slug,
             externalRoot = safeExternalRoot,
         )
-        configureBridgeRoots(project.id, project.rootPath)
+        configureBridgeRoots(project)
         val guestRoot = projectGuestRoot(project)
         _state.update {
             it.copy(
@@ -3903,7 +3914,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val root = current.suggestedProjectRoot ?: return
         if (current.isRunning || current.projectTerminalRunning) return
         val updated = project.copy(rootPath = root)
-        configureBridgeRoots(updated.id, updated.rootPath)
+        configureBridgeRoots(updated)
         val projects = current.projects.map { if (it.id == updated.id) updated else it }
         val guestRoot = projectGuestRoot(updated)
         preferences.saveProjects(projects)

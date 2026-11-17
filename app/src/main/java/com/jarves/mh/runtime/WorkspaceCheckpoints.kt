@@ -29,8 +29,15 @@ class WorkspaceCheckpoints(
 
     private val projectRoots = ConcurrentHashMap<String, String>()
 
+    private val projectBases = java.util.concurrent.ConcurrentHashMap<String, File>()
+
+    /** Base do projeto escolhida pelo ViewModel (pasta externa ou área privada). Spec #5, RF-7. */
+    fun configureProjectBase(projectId: String, base: File) {
+        projectBases[projectId] = base.canonicalFile
+    }
+
     fun ensureWorkspace(projectId: String): File {
-        val base = File(filesDir, "workspaces/$projectId").apply { mkdirs() }.canonicalFile
+        val base = (projectBases[projectId] ?: File(filesDir, "workspaces/$projectId")).apply { mkdirs() }.canonicalFile
         val rootPath = projectRoots[projectId].orEmpty()
         if (rootPath.isBlank()) return base
         val selected = File(base, rootPath).canonicalFile
