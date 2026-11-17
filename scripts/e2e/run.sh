@@ -4,7 +4,7 @@
 # Seleção do alvo (nesta ordem):
 #   1. ADB_DEVICE do .env (valor não é exibido);
 #   2. o único dispositivo conectado por USB ou Wi-Fi;
-#   3. emulador, se houver `emulator` com AVD configurado.
+#   3. emulador em execução (serial emulator-*). Emulador parado não é alvo.
 # Sem alvo, sai com código 2 e marca tudo como NOT TESTED.
 #
 # Cada caso declara o requisito de arquitetura. Casos com `arm64` são
