@@ -3101,7 +3101,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (active != null) {
             val chats = preferences.loadProjectChats(active.id)
             val userMessages = chats.sumOf { preferences.loadMessages(active.id, it.id).count { m -> m.fromUser } }
-            val workspaceDir = File(getApplication<Application>().filesDir, "workspaces/${active.id}")
+            val workspaceDir = projectWorkspaceRoot(active)
             val userFiles = if (workspaceDir.isDirectory) {
                 workspaceDir.walkTopDown().filter { file ->
                     file.isFile && !file.name.startsWith(".claude") && file.name != ".pocket-dev-stacks.json"
@@ -3876,7 +3876,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun detectNestedProjectRoot(project: Project): String? {
-        val base = File(getApplication<Application>().filesDir, "workspaces/${project.id}")
+        val base = projectWorkspaceRoot(project)
         if (!base.isDirectory) return null
         val visible = base.listFiles().orEmpty().filterNot { file ->
             file.name == ".claude" || file.name == ".claude.json"
