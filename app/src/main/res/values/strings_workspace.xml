@@ -173,4 +173,12 @@
     <string name="ws_context_folder_unavailable">Device folder is not available. Grant access and choose it again.</string>
     <string name="ws_delete_device_folder">Also delete the folder on this phone</string>
     <string name="ws_delete_device_folder_warning">The folder and its files will be deleted from this phone. This cannot be undone.</string>
+    <string name="ws_storage_no_access_title">No access</string>
+    <string name="ws_storage_grant_hint">To save the project on device storage, allow access to files in the app settings.</string>
+    <string name="ws_storage_grant_action">Grant access</string>
+    <string name="ws_storage_open_settings">Open settings</string>
+    <string name="ws_storage_active_note">Access granted</string>
+    <string name="ws_storage_picker_hint">Opens the system folder picker. Only the main storage is supported in this version.</string>
+    <string name="ws_storage_panel_title">No access to device storage.</string>
+    <string name="ws_storage_panel_body">This session uses the app\'s private folder. The files in %1$s are not available now.</string>
 </resources>

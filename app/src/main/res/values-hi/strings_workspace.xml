@@ -173,4 +173,12 @@
     <string name="ws_context_folder_unavailable">डिवाइस फ़ोल्डर उपलब्ध नहीं है। पहुँच दें और उसे फिर से चुनें।</string>
     <string name="ws_delete_device_folder">इस फ़ोन पर का फ़ोल्डर भी हटाएँ</string>
     <string name="ws_delete_device_folder_warning">फ़ोल्डर और उसकी फ़ाइलें इस फ़ोन से हट जाएँगी। इसे वापस नहीं लाया जा सकता।</string>
+    <string name="ws_storage_no_access_title">पहुंच नहीं</string>
+    <string name="ws_storage_grant_hint">डिवाइस स्टोरेज में प्रोजेक्ट सहेजने के लिए ऐप सेटिंग्स में फ़ाइलों की पहुंच की अनुमति दें।</string>
+    <string name="ws_storage_grant_action">पहुंच दें</string>
+    <string name="ws_storage_open_settings">सेटिंग्स खोलें</string>
+    <string name="ws_storage_active_note">पहुंच दी गई है</string>
+    <string name="ws_storage_picker_hint">सिस्टम फ़ोल्डर चयनकर्ता खोलता है। इस संस्करण में केवल मुख्य स्टोरेज समर्थित है।</string>
+    <string name="ws_storage_panel_title">डिवाइस स्टोरेज तक पहुंच नहीं है।</string>
+    <string name="ws_storage_panel_body">यह सत्र ऐप के निजी फ़ोल्डर का उपयोग करता है। %1$s में फ़ाइलें अभी उपलब्ध नहीं हैं।</string>
 </resources>

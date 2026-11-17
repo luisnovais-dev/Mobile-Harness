@@ -173,4 +173,12 @@
     <string name="ws_context_folder_unavailable">设备文件夹不可用。请授予权限后重新选择。</string>
     <string name="ws_delete_device_folder">同时删除本机上的文件夹</string>
     <string name="ws_delete_device_folder_warning">文件夹及其文件将从本机删除，且无法撤销。</string>
+    <string name="ws_storage_no_access_title">无访问权限</string>
+    <string name="ws_storage_grant_hint">要将项目保存到设备存储，请在应用设置中允许访问文件。</string>
+    <string name="ws_storage_grant_action">授予访问权限</string>
+    <string name="ws_storage_open_settings">打开设置</string>
+    <string name="ws_storage_active_note">已授予访问权限</string>
+    <string name="ws_storage_picker_hint">打开系统文件夹选择器。本版本仅支持主存储。</string>
+    <string name="ws_storage_panel_title">无法访问设备存储。</string>
+    <string name="ws_storage_panel_body">此会话使用应用的私有文件夹。%1$s 中的文件当前不可用。</string>
 </resources>

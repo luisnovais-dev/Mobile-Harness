@@ -173,4 +173,12 @@
     <string name="ws_context_folder_unavailable">La carpeta del dispositivo no está disponible. Concede el acceso y elígela de nuevo.</string>
     <string name="ws_delete_device_folder">Borrar también la carpeta de este teléfono</string>
     <string name="ws_delete_device_folder_warning">La carpeta y sus archivos se borrarán de este teléfono. No se puede deshacer.</string>
+    <string name="ws_storage_no_access_title">Sin acceso</string>
+    <string name="ws_storage_grant_hint">Para guardar el proyecto en el almacenamiento del dispositivo, permite el acceso a archivos en los ajustes de la app.</string>
+    <string name="ws_storage_grant_action">Conceder acceso</string>
+    <string name="ws_storage_open_settings">Abrir ajustes</string>
+    <string name="ws_storage_active_note">Acceso concedido</string>
+    <string name="ws_storage_picker_hint">Abre el selector de carpetas del sistema. En esta versión solo se admite el almacenamiento principal.</string>
+    <string name="ws_storage_panel_title">Sin acceso al almacenamiento del dispositivo.</string>
+    <string name="ws_storage_panel_body">Esta sesión usa la carpeta privada de la app. Los archivos en %1$s no están disponibles ahora.</string>
 </resources>

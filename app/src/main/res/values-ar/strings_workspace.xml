@@ -173,4 +173,12 @@
     <string name="ws_context_folder_unavailable">مجلد الجهاز غير متاح. امنح الوصول واختره مرة أخرى.</string>
     <string name="ws_delete_device_folder">احذف المجلد على هذا الهاتف أيضًا</string>
     <string name="ws_delete_device_folder_warning">سيُحذف المجلد وملفاته من هذا الهاتف. لا يمكن التراجع عن ذلك.</string>
+    <string name="ws_storage_no_access_title">لا يوجد وصول</string>
+    <string name="ws_storage_grant_hint">لحفظ المشروع في تخزين الجهاز، امنح التطبيق إذن الوصول إلى الملفات من إعدادات التطبيق.</string>
+    <string name="ws_storage_grant_action">منح الوصول</string>
+    <string name="ws_storage_open_settings">فتح الإعدادات</string>
+    <string name="ws_storage_active_note">تم منح الوصول</string>
+    <string name="ws_storage_picker_hint">يفتح أداة اختيار المجلدات في النظام. تدعم هذه النسخة التخزين الرئيسي فقط.</string>
+    <string name="ws_storage_panel_title">لا يوجد وصول إلى تخزين الجهاز.</string>
+    <string name="ws_storage_panel_body">تستخدم هذه الجلسة المجلد الخاص بالتطبيق. الملفات في %1$s غير متاحة الآن.</string>
 </resources>

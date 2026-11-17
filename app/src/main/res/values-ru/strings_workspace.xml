@@ -173,4 +173,12 @@
     <string name="ws_context_folder_unavailable">Папка устройства недоступна. Разрешите доступ и выберите её снова.</string>
     <string name="ws_delete_device_folder">Также удалить папку на этом телефоне</string>
     <string name="ws_delete_device_folder_warning">Папка и её файлы будут удалены с этого телефона. Это нельзя отменить.</string>
+    <string name="ws_storage_no_access_title">Нет доступа</string>
+    <string name="ws_storage_grant_hint">Чтобы сохранять проект в памяти устройства, разрешите доступ к файлам в настройках приложения.</string>
+    <string name="ws_storage_grant_action">Разрешить доступ</string>
+    <string name="ws_storage_open_settings">Открыть настройки</string>
+    <string name="ws_storage_active_note">Доступ предоставлен</string>
+    <string name="ws_storage_picker_hint">Открывает системный выбор папок. В этой версии поддерживается только основное хранилище.</string>
+    <string name="ws_storage_panel_title">Нет доступа к памяти устройства.</string>
+    <string name="ws_storage_panel_body">Сессия использует приватную папку приложения. Файлы в %1$s сейчас недоступны.</string>
 </resources>
