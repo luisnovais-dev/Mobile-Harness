@@ -22,6 +22,9 @@ class ExternalFolderAuditLog(
     private val now: () -> Long = System::currentTimeMillis,
 ) {
     fun record(action: ExternalFolderAction, result: String, folderPath: String) {
-        runCatching { file.appendText(auditLine(now(), action, result, folderPath) + "\n") }
+        runCatching {
+            file.parentFile?.mkdirs()
+            file.appendText(auditLine(now(), action, result, folderPath) + "\n")
+        }
     }
 }

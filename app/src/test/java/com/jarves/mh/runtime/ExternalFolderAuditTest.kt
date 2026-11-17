@@ -32,8 +32,16 @@ class ExternalFolderAuditTest {
     }
 
     @Test
+    fun firstRecordCreatesTheAuditFolder() {
+        val file = File(temp.root, "audit/external-folders.log")
+        ExternalFolderAuditLog(file) { 0L }.record(ExternalFolderAction.READ, "ok", "/storage/emulated/0/MeuProjeto")
+        assertEquals(1, file.readLines().size)
+    }
+
+    @Test
     fun failureToWriteDoesNotBreakTheAction() {
-        val log = ExternalFolderAuditLog(File(temp.root, "missing/dir/audit.log")) { 0L }
+        val blocker = temp.newFile("blocker")
+        val log = ExternalFolderAuditLog(File(blocker, "audit.log")) { 0L }
         log.record(ExternalFolderAction.READ, "ok", "/storage/emulated/0/MeuProjeto")
     }
 }
