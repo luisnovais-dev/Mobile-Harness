@@ -167,4 +167,8 @@
     <string name="ws_storage_location">Где сохранить проект</string>
     <string name="ws_storage_degraded">Хранилище устройства недоступно. Сессия использует личную папку приложения.</string>
     <string name="ws_storage_not_empty">Чтобы клонировать репозиторий, папка должна быть пустой.</string>
+    <string name="chat_attach_from_folder">Прикрепить из папки устройства</string>
+    <string name="ws_context_folder_title">Файлы в этой папке</string>
+    <string name="ws_context_folder_empty">В этой папке нет файлов.</string>
+    <string name="ws_context_folder_unavailable">Папка устройства недоступна. Разрешите доступ и выберите её снова.</string>
 </resources>

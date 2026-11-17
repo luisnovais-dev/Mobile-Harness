@@ -55,6 +55,8 @@ import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.isExternalWorkspaceUnavailable
 import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.shareCopyDestination
+import com.jarves.mh.runtime.SharedStoragePath
+import com.jarves.mh.runtime.contextFileWithinFolder
 import com.jarves.mh.runtime.storedExternalRoot
 import com.jarves.mh.runtime.validatedNewProjectFolder
 import com.jarves.mh.runtime.DshRuntimeBridge
@@ -331,6 +333,9 @@ data class AppUiState(
         ChatMessage(fromUser = false, text = "Hi! Tell me what you want to build or change."),
     ),
     val pendingAttachments: List<ChatAttachment> = emptyList(),
+    /** Pasta do aparelho autorizada para anexar contexto nesta sessão (Spec #5, RF-9). */
+    val contextFolderPath: String? = null,
+    val contextFolderFiles: List<String> = emptyList(),
     val pendingApproval: ToolRequest? = null,
     val changes: List<ChangeItem> = emptyList(),
     val activity: List<ActivityItem> = emptyList(),
@@ -4665,6 +4670,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private val authorizedContextFolders = mutableSetOf<String>()
+
+    /** Abre uma pasta do aparelho para anexar arquivos. A autorização vale até o processo do app terminar. */
+    fun openContextFolder(path: String) {
+        val app = getApplication<Application>()
+        val folder = File(path)
+        if (!currentSharedStorageAccess(app) || !SharedStoragePath.isValidExternalRoot(path) || !folder.isDirectory) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_context_folder_unavailable)) }
+            return
+        }
+        authorizedContextFolders += path
+        val files = folder.listFiles { file -> file.isFile }.orEmpty().map { it.name }.sorted().take(200)
+        _state.update { it.copy(contextFolderPath = path, contextFolderFiles = files) }
+    }
+
+    fun closeContextFolder() {
+        _state.update { it.copy(contextFolderPath = null, contextFolderFiles = emptyList()) }
+    }
+
+    /** Copia um arquivo da pasta autorizada para os anexos do chat, com os mesmos limites de qualquer anexo. */
+    fun attachContextFile(name: String) {
+        val folderPath = _state.value.contextFolderPath ?: return
+        val folder = File(folderPath)
+        val file = File(folder, name)
+        if (folderPath !in authorizedContextFolders || !contextFileWithinFolder(folder, file)) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_context_folder_unavailable)) }
+            return
+        }
+        closeContextFolder()
+        addChatAttachments(listOf(Uri.fromFile(file)))
+    }
+
     fun addChatAttachments(uris: List<Uri>) {
         val current = _state.value
         val project = current.activeProject ?: return
@@ -4729,7 +4766,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun copyChatAttachment(project: Project, chatId: String, uri: Uri): ChatAttachment {
         val resolver = getApplication<Application>().contentResolver
-        var displayName = "attachment"
+        // Uri de arquivo (pasta autorizada) não tem nome no provedor; usa o último segmento do caminho.
+        var displayName = uri.lastPathSegment?.substringAfterLast('/')?.ifBlank { null } ?: "attachment"
         var declaredSize = -1L
         resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {

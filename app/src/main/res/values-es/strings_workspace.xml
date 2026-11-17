@@ -167,4 +167,8 @@
     <string name="ws_storage_location">Dónde guardar el proyecto</string>
     <string name="ws_storage_degraded">El almacenamiento del dispositivo no está disponible. Esta sesión usa la carpeta privada de la app.</string>
     <string name="ws_storage_not_empty">La carpeta debe estar vacía para clonar en ella.</string>
+    <string name="chat_attach_from_folder">Adjuntar desde una carpeta del dispositivo</string>
+    <string name="ws_context_folder_title">Archivos de esta carpeta</string>
+    <string name="ws_context_folder_empty">Esta carpeta no tiene archivos.</string>
+    <string name="ws_context_folder_unavailable">La carpeta del dispositivo no está disponible. Concede el acceso y elígela de nuevo.</string>
 </resources>

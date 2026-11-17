@@ -167,4 +167,8 @@
     <string name="ws_storage_location">Where to save the project</string>
     <string name="ws_storage_degraded">Device storage is not available. This session uses the app\'s private folder.</string>
     <string name="ws_storage_not_empty">The folder must be empty to clone into it.</string>
+    <string name="chat_attach_from_folder">Attach from device folder</string>
+    <string name="ws_context_folder_title">Files in this folder</string>
+    <string name="ws_context_folder_empty">This folder has no files.</string>
+    <string name="ws_context_folder_unavailable">Device folder is not available. Grant access and choose it again.</string>
 </resources>

@@ -453,6 +453,9 @@ fun PocketDevApp(viewModel: MainViewModel = viewModel()) {
             onUseSuggestedProjectRoot = viewModel::useSuggestedProjectRoot,
             onExportProject = viewModel::exportActiveProject,
             onAddAttachments = viewModel::addChatAttachments,
+            onOpenContextFolder = viewModel::openContextFolder,
+            onAttachContextFile = viewModel::attachContextFile,
+            onCloseContextFolder = viewModel::closeContextFolder,
             onRemoveAttachment = viewModel::removePendingAttachment,
             onOpenAttachment = viewModel::openChatAttachment,
             onBuildAndRunAndroid = viewModel::buildAndRunAndroidApp,
@@ -4534,6 +4537,9 @@ private fun WorkspaceScreen(
     onUseSuggestedProjectRoot: () -> Unit,
     onExportProject: (Uri, ExportSelection) -> Unit,
     onAddAttachments: (List<Uri>) -> Unit,
+    onOpenContextFolder: (String) -> Unit,
+    onAttachContextFile: (String) -> Unit,
+    onCloseContextFolder: () -> Unit,
     onRemoveAttachment: (String) -> Unit,
     onOpenAttachment: (ChatAttachment) -> Unit,
     onBuildAndRunAndroid: () -> Unit,
@@ -4607,6 +4613,21 @@ private fun WorkspaceScreen(
         contract = ActivityResultContracts.OpenMultipleDocuments(),
         onResult = onAddAttachments,
     )
+    val contextFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { uri ->
+            val path = uri?.let { runCatching { SharedStoragePath.fromDocumentId(DocumentsContract.getTreeDocumentId(it)) }.getOrNull() }
+            if (path != null) onOpenContextFolder(path)
+        },
+    )
+    if (state.contextFolderPath != null) {
+        ContextFolderDialog(
+            folder = state.contextFolderPath.orEmpty(),
+            files = state.contextFolderFiles,
+            onPick = onAttachContextFile,
+            onDismiss = onCloseContextFolder,
+        )
+    }
     var pendingUploadParent by rememberSaveable { mutableStateOf<String?>(null) }
     val uploadLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments(),
@@ -4930,6 +4951,11 @@ private fun WorkspaceScreen(
                     pendingAttachments = state.pendingAttachments,
                     onAttach = {
                         attachmentLauncher.launch(arrayOf("image/*", "text/*", "application/json", "application/xml"))
+                    },
+                    onAttachFromFolder = if (currentSharedStorageAccess(context)) {
+                        { contextFolderLauncher.launch(null) }
+                    } else {
+                        null
                     },
                     onTakePhoto = {
                         runCatching {
@@ -6439,6 +6465,7 @@ private fun ChatTab(
     agentKind: AgentKind,
     pendingAttachments: List<ChatAttachment>,
     onAttach: () -> Unit,
+    onAttachFromFolder: (() -> Unit)? = null,
     onRemoveAttachment: (String) -> Unit,
     onOpenAttachment: (ChatAttachment) -> Unit,
     onRunInTerminal: (String) -> Unit,
@@ -6645,6 +6672,13 @@ private fun ChatTab(
                                     leadingIcon = { Icon(Icons.Default.AttachFile, null) },
                                     onClick = { attachMenuOpen = false; onAttach() },
                                 )
+                                onAttachFromFolder?.let { openFolder ->
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.chat_attach_from_folder)) },
+                                        leadingIcon = { Icon(Icons.Default.Folder, null) },
+                                        onClick = { attachMenuOpen = false; openFolder() },
+                                    )
+                                }
                             }
                         }
 
@@ -7623,4 +7657,31 @@ private fun BrandMark(modifier: Modifier = Modifier, compact: Boolean = false) {
             tint = primary,
         )
     }
+}
+
+@Composable
+private fun ContextFolderDialog(folder: String, files: List<String>, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.ws_context_folder_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(folder, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (files.isEmpty()) {
+                    Text(stringResource(R.string.ws_context_folder_empty), fontSize = 13.sp)
+                }
+                LazyColumn(Modifier.fillMaxWidth().heightIn(max = 340.dp)) {
+                    items(files, key = { it }) { name ->
+                        Text(
+                            name,
+                            modifier = Modifier.fillMaxWidth().clickable { onPick(name) }.padding(vertical = 10.dp),
+                            fontSize = 14.sp,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }

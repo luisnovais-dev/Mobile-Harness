@@ -167,4 +167,8 @@
     <string name="ws_storage_location">项目保存位置</string>
     <string name="ws_storage_degraded">设备存储不可用。本次会话使用应用的私有文件夹。</string>
     <string name="ws_storage_not_empty">克隆前该文件夹必须为空。</string>
+    <string name="chat_attach_from_folder">从设备文件夹添加附件</string>
+    <string name="ws_context_folder_title">此文件夹中的文件</string>
+    <string name="ws_context_folder_empty">此文件夹中没有文件。</string>
+    <string name="ws_context_folder_unavailable">设备文件夹不可用。请授予权限后重新选择。</string>
 </resources>
