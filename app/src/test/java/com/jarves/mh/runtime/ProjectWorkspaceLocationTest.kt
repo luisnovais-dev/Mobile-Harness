@@ -73,4 +73,12 @@ class ExternalFolderDeletionTest {
         assertFalse(shouldDeleteExternalFolder("/storage/emulated/0", confirmed = true))
         assertFalse(shouldDeleteExternalFolder("/data/user/0/com.jarves.mh/files", confirmed = true))
     }
+
+    /** F2: a pasta que outro projeto também usa não é apagada; os arquivos dele ficariam perdidos. */
+    @Test
+    fun folderSharedWithAnotherProjectIsNotDeleted() {
+        val root = "/storage/emulated/0/MeuProjeto"
+        assertFalse(shouldDeleteExternalFolder(root, confirmed = true, sharedWithAnotherProject = true))
+        assertTrue(shouldDeleteExternalFolder(root, confirmed = true, sharedWithAnotherProject = false))
+    }
 }

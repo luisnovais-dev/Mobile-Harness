@@ -23,6 +23,12 @@ internal fun validatedNewProjectFolder(requested: String, storageAccess: Boolean
     return safe.takeIf { storageAccess }
 }
 
-/** Apagar a pasta do aparelho exige confirmação explícita e uma raiz válida (Spec #5, RF-11). */
-internal fun shouldDeleteExternalFolder(externalRoot: String, confirmed: Boolean): Boolean =
-    confirmed && storedExternalRoot(externalRoot).isNotBlank()
+/**
+ * Apagar a pasta do aparelho exige confirmação explícita, uma raiz válida e que nenhum outro projeto
+ * use a mesma pasta (Spec #5, RF-11; F2).
+ */
+internal fun shouldDeleteExternalFolder(
+    externalRoot: String,
+    confirmed: Boolean,
+    sharedWithAnotherProject: Boolean = false,
+): Boolean = confirmed && !sharedWithAnotherProject && storedExternalRoot(externalRoot).isNotBlank()

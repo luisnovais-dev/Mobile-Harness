@@ -3941,10 +3941,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val filesDir = getApplication<Application>().filesDir
             File(filesDir, "workspaces/${project.id}").deleteRecursively()
-            // RF-11: a pasta do aparelho só é apagada com confirmação explícita e raiz válida.
-            if (shouldDeleteExternalFolder(project.externalRoot, deleteExternalFolder) && currentSharedStorageAccess(getApplication())) {
-                File(project.externalRoot).deleteRecursively()
-                externalAudit.record(ExternalFolderAction.DELETE, "ok", project.externalRoot)
+            // RF-11: a pasta do aparelho só é apagada com confirmação explícita, raiz válida e sem outro projeto nela (F2).
+            // Se a exclusão falha em parte, o registro diz "failed", não "ok" (F9).
+            val sharedWithAnother = project.externalRoot.isNotBlank() &&
+                _state.value.projects.any { it.externalRoot == project.externalRoot }
+            if (shouldDeleteExternalFolder(project.externalRoot, deleteExternalFolder, sharedWithAnother) &&
+                currentSharedStorageAccess(getApplication())
+            ) {
+                val deleted = File(project.externalRoot).deleteRecursively()
+                externalAudit.record(ExternalFolderAction.DELETE, if (deleted) "ok" else "failed", project.externalRoot)
+            } else if (deleteExternalFolder && sharedWithAnother) {
+                externalAudit.record(ExternalFolderAction.DELETE, "kept-shared", project.externalRoot)
             }
             terminalHistoryFile(project.id).delete()
             androidBuildRecordFile(project.id).delete()
