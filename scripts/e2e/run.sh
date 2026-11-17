@@ -38,14 +38,19 @@ record() {
 }
 
 resolve_target() {
+  connected=$($ADB devices 2>/dev/null | awk 'NR>1 && $2=="device" {print $1}')
   if [ -f "$ROOT/.env" ]; then
     configured=$(sed -n 's/^ADB_DEVICE=\(.*\)$/\1/p' "$ROOT/.env" | tail -n 1)
     if [ -n "$configured" ]; then
-      TARGET="$configured"; TARGET_LABEL="ADB_DEVICE do .env"
-      return 0
+      # Usa o ADB_DEVICE só se ele estiver conectado; senão cai no fallback.
+      # O valor não é exibido.
+      if printf '%s\n' "$connected" | grep -qxF "$configured"; then
+        TARGET="$configured"; TARGET_LABEL="ADB_DEVICE do .env"
+        return 0
+      fi
+      echo "E2E: ADB_DEVICE do .env não está conectado; usando fallback." >&2
     fi
   fi
-  connected=$($ADB devices 2>/dev/null | awk 'NR>1 && $2=="device" {print $1}')
   count=$(printf '%s\n' "$connected" | grep -c . || true)
   if [ "$count" = "1" ]; then
     TARGET="$connected"; TARGET_LABEL="dispositivo único conectado"
@@ -72,6 +77,7 @@ is_arm64=0
 case "$abi" in arm64-v8a) is_arm64=1 ;; esac
 
 case_launch() {
+  adb_t shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1
   adb_t shell am start -n "$ACTIVITY" >/dev/null 2>&1
   sleep 2
   if adb_t shell dumpsys window | grep -q "mCurrentFocus=.*$PKG"; then
