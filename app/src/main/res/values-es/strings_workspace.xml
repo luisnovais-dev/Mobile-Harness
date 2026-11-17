@@ -165,7 +165,7 @@
     <string name="ws_storage_root_invalid">Elige una carpeta dentro del almacenamiento, no su raíz.</string>
     <string name="ws_storage_unavailable">El almacenamiento del dispositivo no está disponible. Concede el acceso y elige una carpeta.</string>
     <string name="ws_storage_invalid_folder">Elige una carpeta dentro del almacenamiento del dispositivo, que no sea la raíz ni los datos de la aplicación.</string>
-    <string name="ws_storage_folder_in_use">Otro proyecto ya usa esta carpeta. Elige una diferente.</string>
+    <string name="ws_storage_folder_in_use">Otro proyecto ya usa esta carpeta o una dentro de ella. Elige una diferente.</string>
     <string name="ws_storage_location">Dónde guardar el proyecto</string>
     <string name="ws_storage_not_empty">La carpeta debe estar vacía para clonar en ella.</string>
     <string name="chat_attach_from_folder">Adjuntar desde una carpeta del dispositivo</string>

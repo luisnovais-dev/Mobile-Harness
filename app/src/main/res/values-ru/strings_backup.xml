@@ -43,7 +43,7 @@
     <string name="backup_restore_folders_title">Папки на этом телефоне, в которые восстановление будет записывать данные</string>
     <string name="backup_error_external_unavailable">Для резервного копирования или восстановления папки проекта на этом телефоне нужен доступ к хранилищу. Ничего не изменено.</string>
     <string name="backup_error_external_not_empty">В папке проекта на этом телефоне уже есть файлы. Очистите её или выберите другую. Ничего не изменено.</string>
-    <string name="backup_error_external_shared">Два проекта из этой копии используют одну папку на этом телефоне. Ничего не изменено.</string>
+    <string name="backup_error_external_shared">Два проекта из этой копии используют одинаковые или вложенные папки на этом телефоне. Ничего не изменено.</string>
     <string name="backup_error_newer">Эта копия создана в более новой версии Mobile Harness. Сначала обновите приложение.</string>
     <string name="backup_error_space">Недостаточно свободного места. Требуется около %1$s.</string>
     <string name="backup_error_invalid">Этот файл не является резервной копией Mobile Harness или повреждён.</string>

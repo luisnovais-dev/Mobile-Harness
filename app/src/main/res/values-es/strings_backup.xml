@@ -43,7 +43,7 @@
     <string name="backup_restore_folders_title">Carpetas de este teléfono en las que la restauración escribirá</string>
     <string name="backup_error_external_unavailable">Hace falta acceso al almacenamiento para hacer copia o restaurar una carpeta de proyecto en este teléfono. No se cambió nada.</string>
     <string name="backup_error_external_not_empty">Una carpeta de proyecto de este teléfono ya tiene archivos. Vacíala o elige otra carpeta. No se cambió nada.</string>
-    <string name="backup_error_external_shared">Dos proyectos de esta copia usan la misma carpeta en este teléfono. No se cambió nada.</string>
+    <string name="backup_error_external_shared">Dos proyectos de esta copia usan carpetas iguales o superpuestas en este teléfono. No se cambió nada.</string>
     <string name="backup_error_newer">Esta copia es de una versión más reciente de Mobile Harness. Actualiza primero la aplicación.</string>
     <string name="backup_error_space">No hay suficiente almacenamiento libre. Se necesitan unos %1$s.</string>
     <string name="backup_error_invalid">Este archivo no es una copia de seguridad de Mobile Harness o está dañado.</string>

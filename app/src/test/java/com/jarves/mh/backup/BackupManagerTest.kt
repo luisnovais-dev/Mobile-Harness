@@ -252,13 +252,14 @@ class BackupManagerTest {
         external.write("README.md", "on device")
         val stores = externalStores(external)
         val bytes = backupWithExternal(source, stores)
-        val before = projectIds(stores)
+        val target = FakeStores(prefs = projectsPrefs("keep"))
+        val before = projectIds(target)
         try {
-            BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true })
+            BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true })
                 .restore(ByteArrayInputStream(bytes), null)
             fail("restore should refuse a non-empty external folder")
         } catch (expected: ExternalFolderNotEmptyException) {
-            assertEquals(before, projectIds(stores))
+            assertEquals(before, projectIds(target))
             assertEquals("on device", File(external, "README.md").readText())
         }
     }
@@ -270,8 +271,9 @@ class BackupManagerTest {
         external.write("README.md", "on device")
         val stores = externalStores(external)
         val bytes = backupWithExternal(source, stores)
+        val target = FakeStores(prefs = projectsPrefs("keep"))
         external.deleteRecursively()
-        BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true })
+        BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true })
             .restore(ByteArrayInputStream(bytes), null)
         assertEquals("on device", File(external, "README.md").readText())
     }
@@ -283,17 +285,18 @@ class BackupManagerTest {
         external.write("README.md", "on device")
         val stores = externalStores(external)
         val bytes = backupWithExternal(source, stores)
+        val target = FakeStores(prefs = projectsPrefs("keep"))
         val events = mutableListOf<String>()
         val audit = { action: ExternalFolderAction, result: String, _: String -> events += "${action.name}:$result" }
         try {
-            BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true }, audit = audit)
+            BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true }, audit = audit)
                 .restore(ByteArrayInputStream(bytes), null)
             fail("restore should refuse a non-empty external folder")
         } catch (expected: ExternalFolderNotEmptyException) {
             assertEquals(listOf("RESTORE:refused"), events)
         }
         external.deleteRecursively()
-        BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true }, audit = audit)
+        BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true }, audit = audit)
             .restore(ByteArrayInputStream(bytes), null)
         assertEquals(listOf("RESTORE:refused", "RESTORE:ok"), events)
     }
@@ -384,6 +387,30 @@ class BackupManagerTest {
         } catch (expected: ExternalFolderSharedException) {
             assertEquals(listOf("keep"), projectIds(target))
             assertTrue(!outer.exists())
+        }
+    }
+
+    /** N10: restaurar um projeto numa pasta que já é de um projeto do aparelho é recusado antes de gravar, mesmo vazia. */
+    @Test
+    fun `restore refuses a folder that a project already on this phone uses, even when it is empty`() {
+        val (source, _) = sourceApp()
+        val shared = temp.newFolder("device", "MH-Teste")
+        val stores = externalStores(shared)
+        val bytes = backupWithExternal(source, stores)
+        val target = FakeStores(
+            prefs = JSONObject().put(
+                "projects_json",
+                JSONObject().put("t", "string").put(
+                    "v",
+                    JSONArray().put(JSONObject().put("id", "x").put("name", "X").put("externalRoot", shared.path)).toString(),
+                ),
+            ),
+        )
+        try {
+            BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true }).restore(ByteArrayInputStream(bytes), null)
+            fail("restore should refuse a folder another project on this phone uses")
+        } catch (expected: ExternalFolderSharedException) {
+            assertEquals(listOf("x"), projectIds(target))
         }
     }
 }

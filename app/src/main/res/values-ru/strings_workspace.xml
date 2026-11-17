@@ -165,7 +165,7 @@
     <string name="ws_storage_root_invalid">Выберите папку внутри хранилища, а не его корень.</string>
     <string name="ws_storage_unavailable">Хранилище устройства недоступно. Разрешите доступ и выберите папку.</string>
     <string name="ws_storage_invalid_folder">Выберите папку внутри хранилища устройства, но не корень хранилища и не данные приложения.</string>
-    <string name="ws_storage_folder_in_use">Эту папку уже использует другой проект. Выберите другую.</string>
+    <string name="ws_storage_folder_in_use">Эту папку или вложенную в неё уже использует другой проект. Выберите другую.</string>
     <string name="ws_storage_location">Где сохранить проект</string>
     <string name="ws_storage_not_empty">Чтобы клонировать репозиторий, папка должна быть пустой.</string>
     <string name="chat_attach_from_folder">Прикрепить из папки устройства</string>

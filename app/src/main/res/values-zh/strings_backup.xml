@@ -43,7 +43,7 @@
     <string name="backup_restore_folders_title">恢复时将写入的本机文件夹</string>
     <string name="backup_error_external_unavailable">备份或恢复本机上的项目文件夹需要存储访问权限。未更改任何内容。</string>
     <string name="backup_error_external_not_empty">本机上的某个项目文件夹已有文件。请清空它或选择其他文件夹。未更改任何内容。</string>
-    <string name="backup_error_external_shared">此备份中有两个项目使用本机上的同一个文件夹。未更改任何内容。</string>
+    <string name="backup_error_external_shared">此备份中有两个项目在本机上使用相同或相互包含的文件夹。未更改任何内容。</string>
     <string name="backup_error_newer">此备份来自更新版本的 Mobile Harness。请先更新应用。</string>
     <string name="backup_error_space">可用存储空间不足，大约需要 %1$s。</string>
     <string name="backup_error_invalid">此文件不是 Mobile Harness 备份，或已损坏。</string>

@@ -220,6 +220,13 @@ class BackupManager(
             // N6: pastas iguais ou uma dentro da outra são recusadas antes de gravar a primeira.
             val roots = projects(restoredPrefs).map { it.optString("externalRoot") }.filter { it.isNotBlank() }
             if (roots.indices.any { i -> (i + 1 until roots.size).any { j -> foldersOverlap(roots[i], roots[j]) } }) {
+                audit(ExternalFolderAction.RESTORE, "refused", roots.first())
+                throw ExternalFolderSharedException()
+            }
+            // N10: pasta de um projeto deste aparelho também é recusada, mesmo vazia; senão dois projetos a compartilhariam.
+            val localRoots = projects(stores.exportPrefs()).map { it.optString("externalRoot") }.filter { it.isNotBlank() }
+            roots.firstOrNull { root -> localRoots.any { foldersOverlap(root, it) } }?.let { root ->
+                audit(ExternalFolderAction.RESTORE, "refused", root)
                 throw ExternalFolderSharedException()
             }
 
