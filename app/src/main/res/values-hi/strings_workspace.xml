@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">सिस्टम फ़ोल्डर चयनकर्ता खोलता है। इस संस्करण में केवल मुख्य स्टोरेज समर्थित है।</string>
     <string name="ws_storage_panel_title">डिवाइस स्टोरेज तक पहुंच नहीं है।</string>
     <string name="ws_storage_panel_body">यह सत्र ऐप के निजी फ़ोल्डर का उपयोग करता है। %1$s में फ़ाइलें अभी उपलब्ध नहीं हैं।</string>
+    <string name="ws_storage_delete_needs_access">इस फ़ोन पर फ़ोल्डर हटाने के लिए पहुंच दें।</string>
 </resources>

@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">打开系统文件夹选择器。本版本仅支持主存储。</string>
     <string name="ws_storage_panel_title">无法访问设备存储。</string>
     <string name="ws_storage_panel_body">此会话使用应用的私有文件夹。%1$s 中的文件当前不可用。</string>
+    <string name="ws_storage_delete_needs_access">授予访问权限后才能删除本手机上的文件夹。</string>
 </resources>

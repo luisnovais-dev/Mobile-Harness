@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">يفتح أداة اختيار المجلدات في النظام. تدعم هذه النسخة التخزين الرئيسي فقط.</string>
     <string name="ws_storage_panel_title">لا يوجد وصول إلى تخزين الجهاز.</string>
     <string name="ws_storage_panel_body">تستخدم هذه الجلسة المجلد الخاص بالتطبيق. الملفات في %1$s غير متاحة الآن.</string>
+    <string name="ws_storage_delete_needs_access">امنح الوصول لحذف المجلد من هذا الهاتف.</string>
 </resources>

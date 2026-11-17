@@ -5024,11 +5024,19 @@ private fun WorkspaceScreen(
                     text = {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(stringResource(R.string.ws_delete_project_desc))
+                            // Sem permissão o app não consegue apagar a pasta: a opção fica desabilitada e explica o motivo.
+                            val canDeleteFolder = currentSharedStorageAccess(context)
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Checkbox(checked = deleteFolder, onCheckedChange = { deleteFolder = it })
+                                Checkbox(
+                                    checked = deleteFolder && canDeleteFolder,
+                                    onCheckedChange = { deleteFolder = it },
+                                    enabled = canDeleteFolder,
+                                )
                                 Text(stringResource(R.string.ws_delete_device_folder), fontSize = 13.sp)
                             }
-                            if (deleteFolder) {
+                            if (!canDeleteFolder) {
+                                Text(stringResource(R.string.ws_storage_delete_needs_access), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                            } else if (deleteFolder) {
                                 Text(stringResource(R.string.ws_delete_device_folder_warning), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                             }
                         }
@@ -5036,7 +5044,7 @@ private fun WorkspaceScreen(
                     confirmButton = {
                         TextButton(onClick = {
                             showProjectDelete = false
-                            onDeleteProject(activeProject.id, deleteFolder)
+                            onDeleteProject(activeProject.id, deleteFolder && currentSharedStorageAccess(context))
                         }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
                     },
                     dismissButton = { TextButton(onClick = { showProjectDelete = false }) { Text(stringResource(R.string.action_cancel)) } },

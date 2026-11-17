@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">Opens the system folder picker. Only the main storage is supported in this version.</string>
     <string name="ws_storage_panel_title">No access to device storage.</string>
     <string name="ws_storage_panel_body">This session uses the app\'s private folder. The files in %1$s are not available now.</string>
+    <string name="ws_storage_delete_needs_access">Grant access to delete the folder on this phone.</string>
 </resources>

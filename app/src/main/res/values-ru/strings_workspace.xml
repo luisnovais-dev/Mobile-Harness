@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">Открывает системный выбор папок. В этой версии поддерживается только основное хранилище.</string>
     <string name="ws_storage_panel_title">Нет доступа к памяти устройства.</string>
     <string name="ws_storage_panel_body">Сессия использует приватную папку приложения. Файлы в %1$s сейчас недоступны.</string>
+    <string name="ws_storage_delete_needs_access">Разрешите доступ, чтобы удалить папку на этом телефоне.</string>
 </resources>

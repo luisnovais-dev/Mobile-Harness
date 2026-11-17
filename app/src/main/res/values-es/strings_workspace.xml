@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">Abre el selector de carpetas del sistema. En esta versión solo se admite el almacenamiento principal.</string>
     <string name="ws_storage_panel_title">Sin acceso al almacenamiento del dispositivo.</string>
     <string name="ws_storage_panel_body">Esta sesión usa la carpeta privada de la app. Los archivos en %1$s no están disponibles ahora.</string>
+    <string name="ws_storage_delete_needs_access">Concede el acceso para borrar la carpeta de este teléfono.</string>
 </resources>

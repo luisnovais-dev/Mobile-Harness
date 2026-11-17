@@ -180,4 +180,5 @@
     <string name="ws_storage_picker_hint">Ανοίγει τον επιλογέα φακέλων του συστήματος. Σε αυτή την έκδοση υποστηρίζεται μόνο ο κύριος αποθηκευτικός χώρος.</string>
     <string name="ws_storage_panel_title">Δεν υπάρχει πρόσβαση στον αποθηκευτικό χώρο της συσκευής.</string>
     <string name="ws_storage_panel_body">Αυτή η συνεδρία χρησιμοποιεί τον ιδιωτικό φάκελο της εφαρμογής. Τα αρχεία στο %1$s δεν είναι διαθέσιμα αυτή τη στιγμή.</string>
+    <string name="ws_storage_delete_needs_access">Παρέχετε πρόσβαση για να διαγράψετε τον φάκελο στη συσκευή.</string>
 </resources>
