@@ -44,7 +44,7 @@
     <string name="backup_error_external_unavailable">Storage access is needed to back up or restore a project folder on this phone. Nothing was changed.</string>
     <string name="backup_error_external_not_empty">A project folder on this phone already has files. Empty it or choose another folder. Nothing was changed.</string>
     <string name="backup_error_external_shared">Two projects in this backup use the same or overlapping folders on this phone. Nothing was changed.</string>
-    <string name="backup_error_external_in_use">A project already on this phone uses a folder from this backup. Nothing was changed.</string>
+    <string name="backup_error_external_in_use">A project already on this phone uses a folder from this backup, or one nested with it. Nothing was changed.</string>
     <string name="backup_error_newer">This backup is from a newer version of Mobile Harness. Update the app first.</string>
     <string name="backup_error_space">Not enough free storage. It needs about %1$s.</string>
     <string name="backup_error_invalid">This file isn\'t a Mobile Harness backup, or it is damaged.</string>

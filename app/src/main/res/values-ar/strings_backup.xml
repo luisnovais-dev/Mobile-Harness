@@ -44,7 +44,7 @@
     <string name="backup_error_external_unavailable">يلزم الوصول إلى التخزين لنسخ أو استعادة مجلد مشروع على هذا الهاتف. لم يتغير شيء.</string>
     <string name="backup_error_external_not_empty">يحتوي مجلد مشروع على هذا الهاتف على ملفات بالفعل. أفرِغه أو اختر مجلدًا آخر. لم يتغير شيء.</string>
     <string name="backup_error_external_shared">يستخدم مشروعان في هذه النسخة مجلدين متطابقين أو متداخلين على هذا الهاتف. لم يتغير شيء.</string>
-    <string name="backup_error_external_in_use">يستخدم مشروع موجود على هذا الهاتف مجلدًا من هذه النسخة بالفعل. لم يتغير شيء.</string>
+    <string name="backup_error_external_in_use">يستخدم مشروع موجود على هذا الهاتف مجلدًا من هذه النسخة، أو مجلدًا متداخلًا معه. لم يتغير شيء.</string>
     <string name="backup_error_newer">هذه النسخة الاحتياطية من إصدار أحدث من Mobile Harness. حدّث التطبيق أولًا.</string>
     <string name="backup_error_space">لا توجد مساحة تخزين كافية. يلزم نحو %1$s.</string>
     <string name="backup_error_invalid">هذا الملف ليس نسخة احتياطية من Mobile Harness أو أنه تالف.</string>

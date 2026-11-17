@@ -165,7 +165,7 @@
     <string name="ws_storage_root_invalid">डिवाइस स्टोरेज के अंदर का फ़ोल्डर चुनें, उसकी रूट नहीं।</string>
     <string name="ws_storage_unavailable">डिवाइस स्टोरेज उपलब्ध नहीं है। पहुँच दें और उसके अंदर फ़ोल्डर चुनें।</string>
     <string name="ws_storage_invalid_folder">डिवाइस स्टोरेज के अंदर का कोई फ़ोल्डर चुनें, स्टोरेज की मुख्य जड़ या ऐप के अपने डेटा को छोड़कर।</string>
-        <string name="ws_storage_folder_in_use">कोई दूसरा प्रोजेक्ट यह फ़ोल्डर इस्तेमाल कर रहा है, या यह किसी के अंदर है। कोई दूसरा फ़ोल्डर चुनें।</string>
+    <string name="ws_storage_folder_in_use">कोई दूसरा प्रोजेक्ट यह फ़ोल्डर या इससे जुड़ा कोई नेस्टेड फ़ोल्डर इस्तेमाल कर रहा है। कोई दूसरा फ़ोल्डर चुनें।</string>
     <string name="ws_storage_location">प्रोजेक्ट कहाँ सेव करें</string>
     <string name="ws_storage_not_empty">क्लोन करने के लिए फ़ोल्डर खाली होना चाहिए।</string>
     <string name="chat_attach_from_folder">डिवाइस के फ़ोल्डर से जोड़ें</string>
