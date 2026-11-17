@@ -55,7 +55,10 @@ import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.isExternalWorkspaceUnavailable
 import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.shareCopyDestination
+import com.jarves.mh.runtime.ExternalFolderAction
+import com.jarves.mh.runtime.ExternalFolderAuditLog
 import com.jarves.mh.runtime.SharedStoragePath
+import com.jarves.mh.runtime.clearShareCopies
 import com.jarves.mh.runtime.contextFileWithinFolder
 import com.jarves.mh.runtime.shouldDeleteExternalFolder
 import com.jarves.mh.runtime.storedExternalRoot
@@ -537,6 +540,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
+        // Spec #5, RF-10: cópias de compartilhamento de envios anteriores saem ao abrir o app.
+        viewModelScope.launch(Dispatchers.IO) { clearShareCopies(getApplication<Application>().cacheDir) }
         viewModelScope.launch {
             AndroidAppInstaller.events.collect { event ->
                 if (event.operationId != pendingAndroidInstallId) return@collect
@@ -3947,6 +3952,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // RF-11: a pasta do aparelho só é apagada com confirmação explícita e raiz válida.
             if (shouldDeleteExternalFolder(project.externalRoot, deleteExternalFolder) && currentSharedStorageAccess(getApplication())) {
                 File(project.externalRoot).deleteRecursively()
+                externalAudit.record(ExternalFolderAction.DELETE, "ok", project.externalRoot)
             }
             terminalHistoryFile(project.id).delete()
             androidBuildRecordFile(project.id).delete()
@@ -4633,8 +4639,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val source = safeWorkspaceFile(project, path) ?: error(str(R.string.fm_protected))
             val app = getApplication<Application>()
             // Spec #5, RF-10: compartilha uma cópia em cache/camera/, sem ampliar o FileProvider.
-            val cameraCache = File(app.cacheDir, "camera/shared")
-            cameraCache.deleteRecursively()
+            // Cada envio tem a sua pasta; as antigas saem na próxima abertura do app (clearShareCopies).
             val file = shareCopyDestination(app.cacheDir, source.name, java.util.UUID.randomUUID().toString())
                 .also { it.parentFile?.mkdirs(); source.copyTo(it, overwrite = true) }
             val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", file)
@@ -4677,14 +4682,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val authorizedContextFolders = mutableSetOf<String>()
 
+    private val externalAudit by lazy {
+        ExternalFolderAuditLog(File(getApplication<Application>().filesDir, "audit/external-folders.log"))
+    }
+
     /** Abre uma pasta do aparelho para anexar arquivos. A autorização vale até o processo do app terminar. */
     fun openContextFolder(path: String) {
         val app = getApplication<Application>()
         val folder = File(path)
         if (!currentSharedStorageAccess(app) || !SharedStoragePath.isValidExternalRoot(path) || !folder.isDirectory) {
+            externalAudit.record(ExternalFolderAction.READ, "unavailable", path)
             _state.update { it.copy(toastMessage = str(R.string.ws_context_folder_unavailable)) }
             return
         }
+        externalAudit.record(ExternalFolderAction.READ, "opened", path)
         authorizedContextFolders += path
         val files = folder.listFiles { file -> file.isFile }.orEmpty().map { it.name }.sorted().take(200)
         _state.update { it.copy(contextFolderPath = path, contextFolderFiles = files) }
@@ -4700,9 +4711,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val folder = File(folderPath)
         val file = File(folder, name)
         if (folderPath !in authorizedContextFolders || !contextFileWithinFolder(folder, file)) {
+            externalAudit.record(ExternalFolderAction.READ, "refused", file.path)
             _state.update { it.copy(toastMessage = str(R.string.ws_context_folder_unavailable)) }
             return
         }
+        externalAudit.record(ExternalFolderAction.READ, "attached", file.path)
         closeContextFolder()
         addChatAttachments(listOf(Uri.fromFile(file)))
     }

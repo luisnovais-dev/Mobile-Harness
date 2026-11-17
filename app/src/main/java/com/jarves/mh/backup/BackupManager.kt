@@ -10,6 +10,7 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.util.UUID
 import java.util.zip.Deflater
+import com.jarves.mh.runtime.ExternalFolderAction
 import com.jarves.mh.runtime.SharedStoragePath
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -54,6 +55,8 @@ class BackupManager(
     private val restoredNameSuffix: String = " (restored)",
     /** Só caminhos aprovados (volume primário) são lidos ou gravados fora da área privada. */
     private val externalRootAllowed: (String) -> Boolean = SharedStoragePath::isValidExternalRoot,
+    /** Registro de auditoria das pastas externas (Seg. 21): ação, resultado e caminho, sem conteúdo. */
+    private val audit: (ExternalFolderAction, String, String) -> Unit = { _, _, _ -> },
 ) {
     private data class Item(val name: String, val file: File)
 
@@ -207,7 +210,10 @@ class BackupManager(
                 val root = project.optString("externalRoot")
                 if (externalRootAllowed(root)) {
                     val folder = File(root)
-                    if (folder.isDirectory && !folder.list().isNullOrEmpty()) throw ExternalFolderNotEmptyException()
+                    if (folder.isDirectory && !folder.list().isNullOrEmpty()) {
+                        audit(ExternalFolderAction.RESTORE, "refused", root)
+                        throw ExternalFolderNotEmptyException()
+                    }
                 }
             }
 
@@ -234,7 +240,10 @@ class BackupManager(
                 if (externalRootAllowed(root)) {
                     val folder = File(root).apply { mkdirs() }
                     val staged = File(staging, "$EXTERNAL_PREFIX/$oldId")
-                    if (staged.isDirectory) staged.copyRecursively(folder, overwrite = false)
+                    if (staged.isDirectory) {
+                        staged.copyRecursively(folder, overwrite = false)
+                        audit(ExternalFolderAction.RESTORE, "ok", root)
+                    }
                 } else {
                     entry.put("externalRoot", "")
                 }

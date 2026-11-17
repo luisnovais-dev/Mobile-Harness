@@ -10,3 +10,11 @@ internal fun shareCopyDestination(cacheDir: File, fileName: String, shareId: Str
     val safeName = File(fileName).name.replace(Regex("[^A-Za-z0-9._ -]"), "_").ifBlank { "arquivo" }
     return File(cacheDir, "camera/shared/$shareId/$safeName")
 }
+
+/**
+ * Apaga as cópias de compartilhamento deixadas por envios anteriores (RF-10: "na próxima abertura").
+ * Só remove `camera/shared/`; outros arquivos de `camera/`, como fotos, ficam.
+ */
+internal fun clearShareCopies(cacheDir: File) {
+    File(cacheDir, "camera/shared").deleteRecursively()
+}

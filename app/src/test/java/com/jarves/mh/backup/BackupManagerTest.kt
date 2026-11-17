@@ -1,5 +1,6 @@
 package com.jarves.mh.backup
 
+import com.jarves.mh.runtime.ExternalFolderAction
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -273,5 +274,27 @@ class BackupManagerTest {
         BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true })
             .restore(ByteArrayInputStream(bytes), null)
         assertEquals("on device", File(external, "README.md").readText())
+    }
+
+    @Test
+    fun `restore records refused and copied external folders in the audit`() {
+        val (source, _) = sourceApp()
+        val external = temp.newFolder("device", "MeuProjeto4")
+        external.write("README.md", "on device")
+        val stores = externalStores(external)
+        val bytes = backupWithExternal(source, stores)
+        val events = mutableListOf<String>()
+        val audit = { action: ExternalFolderAction, result: String, _: String -> events += "${action.name}:$result" }
+        try {
+            BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true }, audit = audit)
+                .restore(ByteArrayInputStream(bytes), null)
+            fail("restore should refuse a non-empty external folder")
+        } catch (expected: ExternalFolderNotEmptyException) {
+            assertEquals(listOf("RESTORE:refused"), events)
+        }
+        external.deleteRecursively()
+        BackupManager(source, stores, "1.0.9", 10, externalRootAllowed = { true }, audit = audit)
+            .restore(ByteArrayInputStream(bytes), null)
+        assertEquals(listOf("RESTORE:refused", "RESTORE:ok"), events)
     }
 }

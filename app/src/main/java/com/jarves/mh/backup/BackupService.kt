@@ -183,7 +183,12 @@ class BackupService : Service() {
             appVersionName = BuildConfig.VERSION_NAME,
             appVersionCode = BuildConfig.VERSION_CODE,
             restoredNameSuffix = str(R.string.backup_restored_suffix),
+            audit = { action, result, path -> externalAudit.record(action, result, path) },
         )
+    }
+
+    private val externalAudit by lazy {
+        com.jarves.mh.runtime.ExternalFolderAuditLog(java.io.File(filesDir, "audit/external-folders.log"))
     }
 
     private fun describe(error: Throwable): String = when (error) {
