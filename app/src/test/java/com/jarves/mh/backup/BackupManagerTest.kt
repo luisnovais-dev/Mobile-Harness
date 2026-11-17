@@ -297,4 +297,38 @@ class BackupManagerTest {
             .restore(ByteArrayInputStream(bytes), null)
         assertEquals(listOf("RESTORE:refused", "RESTORE:ok"), events)
     }
+
+    // Spec #5, §5: sem acesso ao armazenamento, nenhuma pasta externa é lida nem gravada. F1 e F4.
+
+    @Test
+    fun `backup refuses a project folder it cannot read and writes nothing`() {
+        val (source, _) = sourceApp()
+        val external = temp.newFolder("device", "MeuProjeto5")
+        external.write("README.md", "on device")
+        val output = ByteArrayOutputStream()
+        try {
+            BackupManager(source, externalStores(external), "1.0.9", 10, externalRootAllowed = { false })
+                .createBackup(output, null)
+            fail("backup should refuse a project folder without storage access")
+        } catch (expected: ExternalStorageUnavailableException) {
+            assertEquals(0, output.size())
+        }
+    }
+
+    @Test
+    fun `restore refuses without storage access and changes nothing`() {
+        val (source, _) = sourceApp()
+        val external = temp.newFolder("device", "MeuProjeto6")
+        external.write("README.md", "on device")
+        val bytes = backupWithExternal(source, externalStores(external))
+        external.deleteRecursively()
+        val target = FakeStores(prefs = projectsPrefs("keep"))
+        try {
+            BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { false }).restore(ByteArrayInputStream(bytes), null)
+            fail("restore should refuse a project folder without storage access")
+        } catch (expected: ExternalStorageUnavailableException) {
+            assertEquals(listOf("keep"), projectIds(target))
+            assertTrue(!external.exists())
+        }
+    }
 }

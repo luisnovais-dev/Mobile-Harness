@@ -183,6 +183,10 @@ class BackupService : Service() {
             appVersionName = BuildConfig.VERSION_NAME,
             appVersionCode = BuildConfig.VERSION_CODE,
             restoredNameSuffix = str(R.string.backup_restored_suffix),
+            // Pasta externa só conta com caminho válido e acesso ao armazenamento agora (Spec #5, §5).
+            externalRootAllowed = { root ->
+                com.jarves.mh.runtime.SharedStoragePath.isValidExternalRoot(root) && com.jarves.mh.runtime.currentSharedStorageAccess(this)
+            },
             audit = { action, result, path -> externalAudit.record(action, result, path) },
         )
     }

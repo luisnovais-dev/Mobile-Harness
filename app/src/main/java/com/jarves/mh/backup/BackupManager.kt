@@ -21,6 +21,9 @@ class NotEnoughSpaceException(val requiredBytes: Long) : IOException("Not enough
 /** Restauração recusada: a pasta externa do projeto já tem arquivos (Spec #5, D2). Nada é alterado. */
 class ExternalFolderNotEmptyException : IOException("The project folder on this phone already has files")
 
+/** Backup ou restauração recusados: há pasta externa de projeto sem acesso ao armazenamento (Spec #5, §5). Nada é alterado. */
+class ExternalStorageUnavailableException : IOException("Storage access is needed for a project folder on this phone")
+
 /** App data the backup reads and replaces that is not plain files (SharedPreferences, Keystore vault). */
 interface BackupStores {
     fun exportPrefs(): JSONObject
@@ -70,6 +73,8 @@ class BackupManager(
         val includeSecrets = password != null
         val directories = mutableListOf<String>()
         val prefs = stores.exportPrefs()
+        // Sem acesso, o backup recusa em vez de sair sem o conteúdo da pasta externa (F4).
+        requireExternalFoldersReachable(prefs, ExternalFolderAction.READ)
         val items = collect(includeSecrets, directories, checkCancelled) + externalFolderItems(prefs, directories, checkCancelled)
         val total = items.sumOf { it.file.length() }
         val projects = projectCount(prefs)
@@ -204,6 +209,9 @@ class BackupManager(
                     if (file.toPath().startsWith(stagingPath) && file.isFile) file.setExecutable(true, false)
                 }
             }
+
+            // Sem acesso ao armazenamento, a restauração recusa antes de alterar qualquer dado (F1).
+            requireExternalFoldersReachable(restoredPrefs, ExternalFolderAction.RESTORE)
 
             // D2: a non-empty external folder refuses the whole restore before anything is applied.
             projects(restoredPrefs).forEach { project ->
@@ -358,6 +366,20 @@ class BackupManager(
     }
 
     private fun projectCount(prefs: JSONObject): Int = projects(prefs).size
+
+    /**
+     * Um projeto com pasta externa só é lido ou restaurado com acesso ao armazenamento (Spec #5, §5).
+     * Sem acesso, recusa antes de qualquer leitura ou gravação e registra na auditoria.
+     */
+    private fun requireExternalFoldersReachable(prefs: JSONObject, action: ExternalFolderAction) {
+        projects(prefs).forEach { project ->
+            val root = project.optString("externalRoot")
+            if (root.isNotBlank() && !externalRootAllowed(root)) {
+                audit(action, "unavailable", root)
+                throw ExternalStorageUnavailableException()
+            }
+        }
+    }
 
     /** Conteúdo das pastas externas dos projetos (D1). Entradas em `external/<id>/`. */
     private fun externalFolderItems(prefs: JSONObject, directories: MutableList<String>, checkCancelled: () -> Unit): List<Item> {
