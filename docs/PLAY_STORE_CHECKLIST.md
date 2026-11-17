@@ -20,7 +20,7 @@ This checklist covers the Play-facing work for package `com.jarves.mh`. It does 
 - [x] Keychain-backed upload keystore and repeatable signed-release script
 - [x] 512×512 Play icon and 1024×500 feature graphic
 - [x] Data safety, app-content, foreground-service, and reviewer worksheets
-- [x] Storage access: sideload requests `READ`/`WRITE` storage permission at runtime; the Play build declares `MANAGE_EXTERNAL_STORAGE` with the user-facing justification for project files (ADR 0001)
+- [x] Storage access: sideload requests `READ`/`WRITE` storage permission at runtime; the Play build declares `MANAGE_EXTERNAL_STORAGE` with the user-facing justification for project files (ADR 0001; the session mounts only the project folder, see ADR 0002)
 - [x] Signed API 36 ARM64 AAB generated and certificate verified
 
 ## Required before uploading

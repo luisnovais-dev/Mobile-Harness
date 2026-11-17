@@ -32,8 +32,8 @@ The current release has no first-party Mobile Harness account. AI features requi
 
 ## Important behavior
 
-- Projects and conversations are stored locally in app-private storage.
-- Shared storage is optional. The Play build asks for All files access only when the reviewer taps Fix on the Device storage check (Android > Health). Declining keeps project sessions working without `/sdcard`.
+- Projects and conversations are stored locally. By default they are in app-private storage. A project can instead be created in a folder of the device storage, chosen by the user after granting storage access.
+- Device storage is optional. The Play build asks for All files access only when the reviewer taps Fix on the Device storage check (Android > Health), or when choosing a device storage folder for a new project. Declining keeps every project working in app-private storage. A project session never mounts the whole shared storage; it sees only its own project folder.
 - PRoot is not a hardened security boundary; only trusted code should be opened.
 - The app downloads runtime components during user-started setup.
 - Docker, systemd, nested containers, real root, and Android emulators are unsupported.

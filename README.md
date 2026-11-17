@@ -395,7 +395,7 @@ Mobile-Harness/
 <br />
 
 * **Zero Cloud Intermediaries**: Mobile Harness connects your device directly to your chosen AI endpoint. No intermediate relays or telemetry servers collect your prompts or code.
-* **Scoped Storage**: Project imports and exports use Android's official Storage Access Framework (SAF). Project sessions can also reach the shared device storage (`/sdcard`), but only after the user grants storage access: sideload builds request `READ`/`WRITE` storage permission, and Play builds request All files access (`MANAGE_EXTERNAL_STORAGE`). Without the grant, sessions start without `/sdcard`. Revoking the grant takes effect the next time the app starts.
+* **Scoped Storage**: Project imports and exports use Android's official Storage Access Framework (SAF). A project can be created in a folder of the device storage, chosen by the user after granting storage access: sideload builds request `READ`/`WRITE` storage permission, and Play builds request All files access (`MANAGE_EXTERNAL_STORAGE`). The session mounts only that project folder, never the whole shared storage. Without the grant, projects stay in app-private storage. Revoking the grant shows a warning when the project opens, and the session uses the private folder.
 * **Cryptographic Checksums**: Root filesystem archives and Claude Code CLI packages are verified via SHA-256 checksums prior to extraction.
 * **Encrypted Secrets**: API tokens are encrypted in hardware-backed storage via Android Keystore.
 
