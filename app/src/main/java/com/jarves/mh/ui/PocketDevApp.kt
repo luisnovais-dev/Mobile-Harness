@@ -200,6 +200,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
@@ -214,6 +215,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jarves.mh.model.ActivityItem
@@ -4578,6 +4581,15 @@ private fun WorkspaceScreen(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { onRefreshAndroidHealth() },
     )
+    // Ao voltar das configurações (ex.: permissão concedida pelo Fix), a checagem é atualizada.
+    val healthLifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(healthLifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) onRefreshAndroidHealth()
+        }
+        healthLifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { healthLifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val requestSharedStorageAccess: () -> Unit = {
         if (BuildConfig.IS_PLAY_BUILD && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             allFilesAccessLauncher.launch(
