@@ -158,4 +158,11 @@
     <string name="ws_preview_external_blocked">Η πλοήγηση σε εξωτερικές σελίδες είναι αποκλεισμένη στην προεπισκόπηση έργου</string>
     <string name="ws_open_url">Άνοιγμα URL</string>
     <string name="ws_refresh_preview">Ανανέωση προεπισκόπησης</string>
+    <string name="ws_storage_private">Ιδιωτικός χώρος της εφαρμογής</string>
+    <string name="ws_storage_device">Αποθηκευτικός χώρος συσκευής</string>
+    <string name="ws_storage_pick">Επιλογή φακέλου</string>
+    <string name="ws_storage_no_access">Δώστε πρόσβαση σε όλα τα αρχεία στις Ρυθμίσεις για να χρησιμοποιήσετε τον αποθηκευτικό χώρο.</string>
+    <string name="ws_storage_root_invalid">Επιλέξτε φάκελο μέσα στον αποθηκευτικό χώρο, όχι τη ρίζα του.</string>
+    <string name="ws_storage_unavailable">Ο αποθηκευτικός χώρος της συσκευής δεν είναι διαθέσιμος. Δώστε πρόσβαση και επιλέξτε φάκελο.</string>
+    <string name="ws_storage_location">Πού θα αποθηκευτεί το έργο</string>
 </resources>

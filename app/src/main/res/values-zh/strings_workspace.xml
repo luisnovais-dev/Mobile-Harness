@@ -158,4 +158,11 @@
     <string name="ws_preview_external_blocked">项目预览中已阻止外部导航</string>
     <string name="ws_open_url">打开网址</string>
     <string name="ws_refresh_preview">刷新预览</string>
+    <string name="ws_storage_private">应用私有区域</string>
+    <string name="ws_storage_device">设备存储</string>
+    <string name="ws_storage_pick">选择文件夹</string>
+    <string name="ws_storage_no_access">请在设置中授予访问所有文件的权限，以使用设备存储。</string>
+    <string name="ws_storage_root_invalid">请选择设备存储中的文件夹，而不是根目录。</string>
+    <string name="ws_storage_unavailable">设备存储不可用。请授予权限并选择一个文件夹。</string>
+    <string name="ws_storage_location">项目保存位置</string>
 </resources>

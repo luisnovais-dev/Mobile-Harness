@@ -158,4 +158,11 @@
     <string name="ws_preview_external_blocked">التنقل الخارجي محظور في معاينة المشروع</string>
     <string name="ws_open_url">فتح الرابط</string>
     <string name="ws_refresh_preview">تحديث المعاينة</string>
+    <string name="ws_storage_private">مساحة التطبيق الخاصة</string>
+    <string name="ws_storage_device">تخزين الجهاز</string>
+    <string name="ws_storage_pick">اختيار مجلد</string>
+    <string name="ws_storage_no_access">امنح الوصول إلى جميع الملفات في الإعدادات لاستخدام تخزين الجهاز.</string>
+    <string name="ws_storage_root_invalid">اختر مجلدًا داخل تخزين الجهاز، وليس جذره.</string>
+    <string name="ws_storage_unavailable">تخزين الجهاز غير متاح. امنح الوصول واختر مجلدًا.</string>
+    <string name="ws_storage_location">أين تُحفظ المشروع</string>
 </resources>

@@ -158,4 +158,11 @@
     <string name="ws_preview_external_blocked">Переход на внешние сайты в предпросмотре проекта заблокирован</string>
     <string name="ws_open_url">Открыть URL</string>
     <string name="ws_refresh_preview">Обновить предпросмотр</string>
+    <string name="ws_storage_private">Личная папка приложения</string>
+    <string name="ws_storage_device">Хранилище устройства</string>
+    <string name="ws_storage_pick">Выбрать папку</string>
+    <string name="ws_storage_no_access">Разрешите доступ ко всем файлам в настройках, чтобы использовать хранилище устройства.</string>
+    <string name="ws_storage_root_invalid">Выберите папку внутри хранилища, а не его корень.</string>
+    <string name="ws_storage_unavailable">Хранилище устройства недоступно. Разрешите доступ и выберите папку.</string>
+    <string name="ws_storage_location">Где сохранить проект</string>
 </resources>

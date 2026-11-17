@@ -53,6 +53,7 @@ import com.jarves.mh.network.GitHubRepository
 import com.jarves.mh.runtime.ClaudeRuntimeBridge
 import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.resolveProjectWorkspace
+import com.jarves.mh.runtime.storedExternalRoot
 import com.jarves.mh.runtime.DshRuntimeBridge
 import com.jarves.mh.runtime.AgentRegistry
 import com.jarves.mh.runtime.AgentUpdateInfo
@@ -3179,12 +3180,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun consumeToast() = _state.update { it.copy(toastMessage = null) }
 
-    fun createProject(name: String) {
+    fun createProject(name: String, externalRoot: String = "") {
         if (name.isBlank()) return
         if (_state.value.isRunning || _state.value.projectTerminalRunning || _state.value.androidBuildRunning) {
             _state.update { it.copy(toastMessage = str(R.string.vm_stop_before_new_project)) }
             return
         }
+        val app = getApplication<Application>()
+        val safeExternalRoot = if (externalRoot.isBlank()) "" else storedExternalRoot(externalRoot)
+        if (externalRoot.isNotBlank() && (safeExternalRoot.isBlank() || !currentSharedStorageAccess(app))) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+            return
+        }
+        if (safeExternalRoot.isNotBlank()) File(safeExternalRoot).mkdirs()
         val baseSlug = projectSlug(name)
         val usedSlugs = _state.value.projects.mapTo(mutableSetOf()) { it.slug }
         val slug = generateSequence(1) { it + 1 }
@@ -3195,6 +3203,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             description = str(R.string.vm_starter_web_project),
             language = "TypeScript",
             slug = slug,
+            externalRoot = safeExternalRoot,
         )
         configureBridgeRoots(project.id, project.rootPath)
         val guestRoot = projectGuestRoot(project)

@@ -13,6 +13,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.provider.DocumentsContract
 import android.provider.Settings
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -243,6 +244,7 @@ import com.jarves.mh.model.WorkspaceEntry
 import com.jarves.mh.model.projectSlug
 import com.jarves.mh.runtime.RuntimeExecutionService
 import com.jarves.mh.runtime.RuntimeSetupService
+import com.jarves.mh.runtime.SharedStoragePath
 import com.jarves.mh.runtime.StorageRequestFallback
 import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.storageRequestFallback
@@ -3599,7 +3601,7 @@ private fun ProjectsScreen(
     state: AppUiState,
     listState: LazyListState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() },
     onOpen: (Project) -> Unit,
-    onCreate: (String) -> Unit,
+    onCreate: (String, String) -> Unit,
     onCreateAndroid: (String, AndroidTemplate) -> Unit,
     onCreateQuickProject: () -> Unit,
     onImportZip: (Uri) -> Unit,
@@ -3625,8 +3627,19 @@ private fun ProjectsScreen(
     var repositorySearch by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
     var androidTemplate by rememberSaveable { mutableStateOf<AndroidTemplate?>(null) }
+    var useDeviceStorage by rememberSaveable { mutableStateOf(false) }
+    var externalRoot by rememberSaveable { mutableStateOf("") }
+    var pickedInvalidFolder by rememberSaveable { mutableStateOf(false) }
     val projects = state.projects
     val context = LocalContext.current
+    val storageAccess = currentSharedStorageAccess(context)
+    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) {
+            val path = runCatching { SharedStoragePath.fromDocumentId(DocumentsContract.getTreeDocumentId(uri)) }.getOrNull()
+            externalRoot = path.orEmpty()
+            pickedInvalidFolder = path == null
+        }
+    }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         onInstallUpdate()
     }
@@ -3919,6 +3932,30 @@ private fun ProjectsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                if (androidTemplate == null && storageAccess) {
+                    Text(stringResource(R.string.ws_storage_location), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        AssistChip(
+                            onClick = { useDeviceStorage = false },
+                            label = { Text(stringResource(R.string.ws_storage_private)) },
+                            leadingIcon = { if (!useDeviceStorage) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) },
+                        )
+                        AssistChip(
+                            onClick = { useDeviceStorage = true },
+                            label = { Text(stringResource(R.string.ws_storage_device)) },
+                            leadingIcon = { if (useDeviceStorage) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) },
+                        )
+                    }
+                    if (useDeviceStorage) {
+                        TextButton(onClick = { pickFolder.launch(null) }) { Text(stringResource(R.string.ws_storage_pick)) }
+                        if (externalRoot.isNotBlank()) {
+                            Text(externalRoot, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (pickedInvalidFolder) {
+                            Text(stringResource(R.string.ws_storage_root_invalid), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
                 if (name.isNotBlank()) {
                     Text(
                         stringResource(R.string.ws_terminal_folder, "/workspace/${projectSlug(name)}"),
@@ -3932,12 +3969,16 @@ private fun ProjectsScreen(
         confirmButton = {
             TextButton(
                 onClick = {
-                    androidTemplate?.let { onCreateAndroid(name, it) } ?: onCreate(name)
+                    androidTemplate?.let { onCreateAndroid(name, it) }
+                        ?: onCreate(name, if (useDeviceStorage) externalRoot else "")
                     showCreate = false
                     name = ""
                     androidTemplate = null
+                    useDeviceStorage = false
+                    externalRoot = ""
+                    pickedInvalidFolder = false
                 },
-                enabled = name.isNotBlank(),
+                enabled = name.isNotBlank() && (!useDeviceStorage || externalRoot.isNotBlank()),
             ) { Text(stringResource(R.string.ws_create)) }
         },
         dismissButton = { TextButton(onClick = { showCreate = false }) { Text(stringResource(R.string.action_cancel)) } },

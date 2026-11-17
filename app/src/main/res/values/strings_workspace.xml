@@ -158,4 +158,11 @@
     <string name="ws_preview_external_blocked">External navigation is blocked in project preview</string>
     <string name="ws_open_url">Open URL</string>
     <string name="ws_refresh_preview">Refresh preview</string>
+    <string name="ws_storage_private">App private area</string>
+    <string name="ws_storage_device">Device storage</string>
+    <string name="ws_storage_pick">Choose folder</string>
+    <string name="ws_storage_no_access">Grant access to all files in Settings to use device storage.</string>
+    <string name="ws_storage_root_invalid">Choose a folder inside device storage, not its root.</string>
+    <string name="ws_storage_unavailable">Device storage is unavailable. Grant access and choose a folder inside it.</string>
+    <string name="ws_storage_location">Where to save the project</string>
 </resources>
