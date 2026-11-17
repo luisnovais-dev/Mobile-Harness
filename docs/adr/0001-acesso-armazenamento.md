@@ -1,6 +1,6 @@
 # ADR 0001: Acesso ao armazenamento compartilhado por distribuição
 
-- Status: aceita
+- Status: aceita (decisão 3 substituída pela ADR 0002)
 - Data: 2026-11-16
 - Issue: #4 (épico #3)
 
