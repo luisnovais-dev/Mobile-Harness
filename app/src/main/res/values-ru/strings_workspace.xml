@@ -166,4 +166,5 @@
     <string name="ws_storage_unavailable">Хранилище устройства недоступно. Разрешите доступ и выберите папку.</string>
     <string name="ws_storage_location">Где сохранить проект</string>
     <string name="ws_storage_degraded">Хранилище устройства недоступно. Сессия использует личную папку приложения.</string>
+    <string name="ws_storage_not_empty">Чтобы клонировать репозиторий, папка должна быть пустой.</string>
 </resources>

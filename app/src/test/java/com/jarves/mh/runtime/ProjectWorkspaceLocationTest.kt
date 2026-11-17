@@ -3,6 +3,7 @@ package com.jarves.mh.runtime
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -36,5 +37,27 @@ class ProjectWorkspaceLocationTest {
         assertTrue(isExternalWorkspaceUnavailable(external, storageAccess = true, externalExists = false))
         assertFalse(isExternalWorkspaceUnavailable("", storageAccess = false, externalExists = false))
         assertFalse(isExternalWorkspaceUnavailable(external, storageAccess = true, externalExists = true))
+    }
+}
+
+class NewProjectFolderTest {
+    private val root = "/storage/emulated/0/MeuProjeto"
+
+    @Test
+    fun blankChoiceMeansPrivateAreaWithoutPermissionCheck() {
+        assertEquals("", validatedNewProjectFolder("", storageAccess = false))
+        assertEquals("", validatedNewProjectFolder("", storageAccess = true))
+    }
+
+    @Test
+    fun chosenFolderIsAcceptedOnlyWithPermission() {
+        assertEquals(root, validatedNewProjectFolder(root, storageAccess = true))
+        assertNull(validatedNewProjectFolder(root, storageAccess = false))
+    }
+
+    @Test
+    fun invalidFolderIsRefusedEvenWithPermission() {
+        assertNull(validatedNewProjectFolder("/data/user/0/com.jarves.mh/files", storageAccess = true))
+        assertNull(validatedNewProjectFolder("/storage/emulated/0/../../data", storageAccess = true))
     }
 }

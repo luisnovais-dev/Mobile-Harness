@@ -166,4 +166,5 @@
     <string name="ws_storage_unavailable">设备存储不可用。请授予权限并选择一个文件夹。</string>
     <string name="ws_storage_location">项目保存位置</string>
     <string name="ws_storage_degraded">设备存储不可用。本次会话使用应用的私有文件夹。</string>
+    <string name="ws_storage_not_empty">克隆前该文件夹必须为空。</string>
 </resources>

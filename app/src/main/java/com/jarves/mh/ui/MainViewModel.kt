@@ -56,6 +56,7 @@ import com.jarves.mh.runtime.isExternalWorkspaceUnavailable
 import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.shareCopyDestination
 import com.jarves.mh.runtime.storedExternalRoot
+import com.jarves.mh.runtime.validatedNewProjectFolder
 import com.jarves.mh.runtime.DshRuntimeBridge
 import com.jarves.mh.runtime.AgentRegistry
 import com.jarves.mh.runtime.AgentUpdateInfo
@@ -649,7 +650,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         file.isFile && !file.name.startsWith(".claude") && file.name != ".pocket-dev-stacks.json"
                     }.count()
                 } else 0
-                val keep = userMessages > 0 || userFiles > 0
+                // Projeto com pasta no aparelho nunca some sozinho: a pasta do usuário fica fora da limpeza.
+                val keep = userMessages > 0 || userFiles > 0 || project.externalRoot.isNotBlank()
                 if (!keep) {
                     workspaceDir.deleteRecursively()
                     terminalHistoryFile(project.id).delete()
@@ -1221,6 +1223,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun projectGuestRoot(project: Project): String = "/workspace/${project.slug}"
+
+    /**
+     * Valida a pasta do aparelho escolhida na criação. Devolve "" para área privada, o caminho
+     * validado com a pasta criada, ou null quando não pode ser usada (sem permissão ou caminho inválido).
+     */
+    private fun validatedExternalRoot(externalRoot: String): String? {
+        val safe = validatedNewProjectFolder(externalRoot, currentSharedStorageAccess(getApplication())) ?: return null
+        if (safe.isNotBlank()) File(safe).mkdirs()
+        return safe
+    }
 
     /** Pasta base do projeto: externa quando disponível, senão a área privada (Spec #5, RF-4). */
     private fun projectBaseDir(project: Project): File {
@@ -3264,10 +3276,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         refreshProjectFiles()
     }
 
-    fun createAndroidProject(name: String, template: AndroidTemplate) {
+    fun createAndroidProject(name: String, template: AndroidTemplate, externalRoot: String = "") {
         if (name.isBlank()) return
         if (_state.value.isRunning || _state.value.projectTerminalRunning || _state.value.androidBuildRunning) {
             _state.update { it.copy(toastMessage = str(R.string.an_stop_before_new_project)) }
+            return
+        }
+        val safeExternalRoot = validatedExternalRoot(externalRoot)
+        if (safeExternalRoot == null) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
             return
         }
         val cleanName = name.replace(Regex("\\s+"), " ").trim().take(60)
@@ -3283,8 +3300,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             slug = slug,
             type = ProjectType.ANDROID,
             androidTemplate = template,
+            externalRoot = safeExternalRoot,
         )
-        val workspace = File(getApplication<Application>().filesDir, "workspaces/${project.id}")
+        val workspace = projectBaseDir(project)
         runCatching { AndroidProjectTemplateGenerator.generate(workspace, cleanName, template) }
             .onFailure { error ->
                 _state.update { it.copy(toastMessage = str(R.string.an_could_not_create_android_project)) }
@@ -3472,22 +3490,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun clonePublicGitRepository(url: String) {
-        cloneGitRepository(url = url, repositoryName = null, branch = null, useGitHubCli = false)
+    fun clonePublicGitRepository(url: String, externalRoot: String = "") {
+        cloneGitRepository(url = url, repositoryName = null, branch = null, useGitHubCli = false, externalRoot = externalRoot)
     }
 
-    fun cloneGitHubRepository(repository: GitHubRepository) {
+    fun cloneGitHubRepository(repository: GitHubRepository, externalRoot: String = "") {
         if (_state.value.githubAuthStatus != GitHubAuthStatus.CONNECTED) {
             _state.update { it.copy(githubAuthStatus = GitHubAuthStatus.DISCONNECTED, githubMessage = str(R.string.vm_github_connect_again)) }
             return
         }
-        cloneGitRepository(repository.cloneUrl, repository.fullName, repository.defaultBranch, useGitHubCli = true)
+        cloneGitRepository(repository.cloneUrl, repository.fullName, repository.defaultBranch, useGitHubCli = true, externalRoot = externalRoot)
     }
 
-    private fun cloneGitRepository(url: String, repositoryName: String?, branch: String?, useGitHubCli: Boolean) {
+    private fun cloneGitRepository(url: String, repositoryName: String?, branch: String?, useGitHubCli: Boolean, externalRoot: String = "") {
         if (_state.value.gitCloneRunning || _state.value.projectImporting || _state.value.isRunning || _state.value.projectTerminalRunning || _state.value.androidBuildRunning) return
         val normalized = runCatching { validateGitUrl(url) }.getOrElse { error ->
             _state.update { it.copy(toastMessage = error.message ?: str(R.string.vm_invalid_git_url)) }
+            return
+        }
+        val safeExternalRoot = validatedExternalRoot(externalRoot)
+        if (safeExternalRoot == null) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+            return
+        }
+        // Git clona em pasta vazia. A pasta do usuário nunca é apagada em falha; só o conteúdo que o clone criou.
+        if (safeExternalRoot.isNotBlank() && File(safeExternalRoot).list()?.isNotEmpty() == true) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_not_empty)) }
             return
         }
         _state.update { it.copy(gitCloneRunning = true, gitCloneMessage = str(R.string.vm_connecting_git)) }
@@ -3496,7 +3524,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 runCatching {
                     val identity = generateQuickChatIdentity(_state.value.projects.mapTo(mutableSetOf()) { it.slug })
                     val projectId = UUID.randomUUID().toString()
-                    val workspace = File(getApplication<Application>().filesDir, "workspaces/$projectId").apply { mkdirs() }
+                    val workspace = if (safeExternalRoot.isNotBlank()) {
+                        File(safeExternalRoot)
+                    } else {
+                        File(getApplication<Application>().filesDir, "workspaces/$projectId")
+                    }.apply { mkdirs() }
                     val output = File(getApplication<Application>().cacheDir, "git-clone-${System.nanoTime()}.log")
                     try {
                         val environment = mutableMapOf(
@@ -3540,9 +3572,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             language = metadata.second,
                             slug = identity.slug,
                             kind = ProjectKind.QUICK_PROJECT,
+                            externalRoot = safeExternalRoot,
                         )
                     } catch (error: Throwable) {
-                        workspace.deleteRecursively()
+                        if (safeExternalRoot.isBlank()) {
+                            workspace.deleteRecursively()
+                        } else {
+                            workspace.listFiles()?.forEach { it.deleteRecursively() }
+                        }
                         throw error
                     } finally {
                         output.delete()

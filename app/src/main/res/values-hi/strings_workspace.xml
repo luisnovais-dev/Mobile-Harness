@@ -166,4 +166,5 @@
     <string name="ws_storage_unavailable">डिवाइस स्टोरेज उपलब्ध नहीं है। पहुँच दें और उसके अंदर फ़ोल्डर चुनें।</string>
     <string name="ws_storage_location">प्रोजेक्ट कहाँ सेव करें</string>
     <string name="ws_storage_degraded">डिवाइस स्टोरेज उपलब्ध नहीं है। यह सत्र ऐप के निजी फ़ोल्डर का उपयोग करता है।</string>
+    <string name="ws_storage_not_empty">क्लोन करने के लिए फ़ोल्डर खाली होना चाहिए।</string>
 </resources>

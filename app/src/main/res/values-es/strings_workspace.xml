@@ -166,4 +166,5 @@
     <string name="ws_storage_unavailable">El almacenamiento del dispositivo no está disponible. Concede el acceso y elige una carpeta.</string>
     <string name="ws_storage_location">Dónde guardar el proyecto</string>
     <string name="ws_storage_degraded">El almacenamiento del dispositivo no está disponible. Esta sesión usa la carpeta privada de la app.</string>
+    <string name="ws_storage_not_empty">La carpeta debe estar vacía para clonar en ella.</string>
 </resources>

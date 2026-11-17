@@ -3596,21 +3596,57 @@ private fun ClaudeSubscriptionCredentialsStep(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+/** Escolha de onde gravar o projeto: área privada ou pasta do aparelho (Spec #5, RF-1 e emenda Task 17). */
+@Composable
+private fun DeviceStorageSection(
+    storageAccess: Boolean,
+    useDeviceStorage: Boolean,
+    onUseDeviceStorage: (Boolean) -> Unit,
+    externalRoot: String,
+    pickedInvalidFolder: Boolean,
+    onPick: () -> Unit,
+) {
+    if (!storageAccess) return
+    Text(stringResource(R.string.ws_storage_location), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        AssistChip(
+            onClick = { onUseDeviceStorage(false) },
+            label = { Text(stringResource(R.string.ws_storage_private)) },
+            leadingIcon = { if (!useDeviceStorage) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) },
+        )
+        AssistChip(
+            onClick = { onUseDeviceStorage(true) },
+            label = { Text(stringResource(R.string.ws_storage_device)) },
+            leadingIcon = { if (useDeviceStorage) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) },
+        )
+    }
+    if (useDeviceStorage) {
+        TextButton(onClick = onPick) { Text(stringResource(R.string.ws_storage_pick)) }
+        if (externalRoot.isNotBlank()) {
+            Text(externalRoot, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (pickedInvalidFolder) {
+            Text(stringResource(R.string.ws_storage_root_invalid), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProjectsScreen(
     state: AppUiState,
     listState: LazyListState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() },
     onOpen: (Project) -> Unit,
     onCreate: (String, String) -> Unit,
-    onCreateAndroid: (String, AndroidTemplate) -> Unit,
+    onCreateAndroid: (String, AndroidTemplate, String) -> Unit,
     onCreateQuickProject: () -> Unit,
     onImportZip: (Uri) -> Unit,
-    onCloneGit: (String) -> Unit,
+    onCloneGit: (String, String) -> Unit,
     onStartGitHubLogin: () -> Unit,
     onGenerateNewGitHubCode: () -> Unit,
     onRefreshGitHub: () -> Unit,
     onDisconnectGitHub: () -> Unit,
-    onCloneGitHub: (GitHubRepository) -> Unit,
+    onCloneGitHub: (GitHubRepository, String) -> Unit,
     onRenameProject: (String, String) -> Unit,
     onDeleteProject: (String) -> Unit,
     onSettings: () -> Unit,
@@ -3932,30 +3968,14 @@ private fun ProjectsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (androidTemplate == null && storageAccess) {
-                    Text(stringResource(R.string.ws_storage_location), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        AssistChip(
-                            onClick = { useDeviceStorage = false },
-                            label = { Text(stringResource(R.string.ws_storage_private)) },
-                            leadingIcon = { if (!useDeviceStorage) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) },
-                        )
-                        AssistChip(
-                            onClick = { useDeviceStorage = true },
-                            label = { Text(stringResource(R.string.ws_storage_device)) },
-                            leadingIcon = { if (useDeviceStorage) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) },
-                        )
-                    }
-                    if (useDeviceStorage) {
-                        TextButton(onClick = { pickFolder.launch(null) }) { Text(stringResource(R.string.ws_storage_pick)) }
-                        if (externalRoot.isNotBlank()) {
-                            Text(externalRoot, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        if (pickedInvalidFolder) {
-                            Text(stringResource(R.string.ws_storage_root_invalid), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                }
+                DeviceStorageSection(
+                    storageAccess = storageAccess,
+                    useDeviceStorage = useDeviceStorage,
+                    onUseDeviceStorage = { useDeviceStorage = it },
+                    externalRoot = externalRoot,
+                    pickedInvalidFolder = pickedInvalidFolder,
+                    onPick = { pickFolder.launch(null) },
+                )
                 if (name.isNotBlank()) {
                     Text(
                         stringResource(R.string.ws_terminal_folder, "/workspace/${projectSlug(name)}"),
@@ -3969,8 +3989,9 @@ private fun ProjectsScreen(
         confirmButton = {
             TextButton(
                 onClick = {
-                    androidTemplate?.let { onCreateAndroid(name, it) }
-                        ?: onCreate(name, if (useDeviceStorage) externalRoot else "")
+                    val chosenRoot = if (useDeviceStorage) externalRoot else ""
+                    androidTemplate?.let { onCreateAndroid(name, it, chosenRoot) }
+                        ?: onCreate(name, chosenRoot)
                     showCreate = false
                     name = ""
                     androidTemplate = null
@@ -3997,13 +4018,28 @@ private fun ProjectsScreen(
                     placeholder = { Text("https://github.com/owner/repository.git") },
                     singleLine = true,
                 )
+                DeviceStorageSection(
+                    storageAccess = storageAccess,
+                    useDeviceStorage = useDeviceStorage,
+                    onUseDeviceStorage = { useDeviceStorage = it },
+                    externalRoot = externalRoot,
+                    pickedInvalidFolder = pickedInvalidFolder,
+                    onPick = { pickFolder.launch(null) },
+                )
                 state.gitCloneMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontSize = 12.sp) }
             }
         },
         confirmButton = {
             Button(
-                enabled = gitUrl.isNotBlank() && !state.gitCloneRunning,
-                onClick = { onCloneGit(gitUrl); showGitDialog = false; gitUrl = "" },
+                enabled = gitUrl.isNotBlank() && !state.gitCloneRunning && (!useDeviceStorage || externalRoot.isNotBlank()),
+                onClick = {
+                    onCloneGit(gitUrl, if (useDeviceStorage) externalRoot else "")
+                    showGitDialog = false
+                    gitUrl = ""
+                    useDeviceStorage = false
+                    externalRoot = ""
+                    pickedInvalidFolder = false
+                },
             ) { Text(if (state.gitCloneRunning) stringResource(R.string.projects_cloning) else stringResource(R.string.ws_clone_project)) }
         },
         dismissButton = { TextButton(onClick = { showGitDialog = false }, enabled = !state.gitCloneRunning) { Text(stringResource(R.string.action_cancel)) } },
@@ -4074,13 +4110,24 @@ private fun ProjectsScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                         )
+                        DeviceStorageSection(
+                            storageAccess = storageAccess,
+                            useDeviceStorage = useDeviceStorage,
+                            onUseDeviceStorage = { useDeviceStorage = it },
+                            externalRoot = externalRoot,
+                            pickedInvalidFolder = pickedInvalidFolder,
+                            onPick = { pickFolder.launch(null) },
+                        )
                         if (state.githubRepositoriesLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
                         LazyColumn(Modifier.fillMaxWidth().heightIn(max = 350.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             items(filteredRepositories, key = { it.fullName }) { repository ->
                                 Surface(
-                                    modifier = Modifier.fillMaxWidth().clickable(enabled = !state.gitCloneRunning) {
+                                    modifier = Modifier.fillMaxWidth().clickable(enabled = !state.gitCloneRunning && (!useDeviceStorage || externalRoot.isNotBlank())) {
                                         showGitHubDialog = false
-                                        onCloneGitHub(repository)
+                                        onCloneGitHub(repository, if (useDeviceStorage) externalRoot else "")
+                                        useDeviceStorage = false
+                                        externalRoot = ""
+                                        pickedInvalidFolder = false
                                     },
                                     shape = RoundedCornerShape(12.dp),
                                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),

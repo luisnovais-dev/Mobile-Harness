@@ -166,4 +166,5 @@
     <string name="ws_storage_unavailable">Device storage is unavailable. Grant access and choose a folder inside it.</string>
     <string name="ws_storage_location">Where to save the project</string>
     <string name="ws_storage_degraded">Device storage is not available. This session uses the app\'s private folder.</string>
+    <string name="ws_storage_not_empty">The folder must be empty to clone into it.</string>
 </resources>

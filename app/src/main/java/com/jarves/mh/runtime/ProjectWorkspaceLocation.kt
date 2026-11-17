@@ -12,3 +12,13 @@ internal fun resolveProjectWorkspace(privateDir: File, externalRoot: String, sto
 /** Verdadeiro quando o projeto tem pasta externa, mas ela não pode ser usada agora (aviso ao usuário). */
 internal fun isExternalWorkspaceUnavailable(externalRoot: String, storageAccess: Boolean, externalExists: Boolean): Boolean =
     externalRoot.isNotBlank() && !(storageAccess && externalExists)
+
+/**
+ * Pasta escolhida na criação: "" para área privada, o caminho validado quando há permissão,
+ * ou null quando não pode ser usada (sem permissão ou caminho inválido).
+ */
+internal fun validatedNewProjectFolder(requested: String, storageAccess: Boolean): String? {
+    if (requested.isBlank()) return ""
+    val safe = storedExternalRoot(requested).takeIf { it.isNotBlank() } ?: return null
+    return safe.takeIf { storageAccess }
+}
