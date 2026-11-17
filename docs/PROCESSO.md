@@ -10,7 +10,7 @@ O trabalho é fatiado por capacidade do usuário (vertical), não por camada té
 
 | Nível | O que é | Onde vive | Regra |
 |---|---|---|---|
-| **Épico** | Uma capacidade que o usuário consegue usar do início ao fim | Issue `epic.yml` | Tem plano, dono, cenários Given/When/Then, grafo de tickets por papel e suíte de aceite. É demonstrável pelo consumidor real. Épico só de backend exige justificativa e consumidor declarado. |
+| **Épico** | Uma capacidade que o usuário consegue usar do início ao fim | Issue `epic.yml` | Tem plano, dono, cenários Given/When/Then, grafo de tickets por papel e casos E2E de aceite. É demonstrável pelo consumidor real. Épico só de backend exige justificativa e consumidor declarado. |
 | **Ticket** | Uma entrega com Spec e aprovação | Issue `feature.yml` ou `melhoria.yml` | Declara "Parte de #", "Bloqueado por #", "Paralelizável com #" e as áreas ou arquivos que toca. |
 | **PR** | Uma unidade revisável | Pull request | Uma por ticket, por padrão. Fatias opcionais usam `Refs #n`, e a última usa `Closes #n`. |
 | **Tarefa** | Passo da Spec | Checklist da Spec | Ordenada, com critério de conclusão e teste. Tarefa não é commit. |
@@ -70,7 +70,7 @@ A aprovação é dada pelo mantenedor na conversa. Só depois dela o agente come
 
 - Execução das Tasks na ordem da Spec, sem pausas entre elas, exceto por bloqueio real (decisão que a Spec não cobre).
 - Uma issue, uma branch e uma worktree (ver [Worktrees e branches](#worktrees-e-branches)).
-- TDD para cada comportamento testável, em dois níveis: teste de aceitação do épico (ver [Contrato e testes](#contrato-e-testes)) e teste unitário do ticket. RED: teste que falha pelo motivo esperado. GREEN: implementação mínima. REFACTOR: com testes verdes. Falha de configuração, import, fixture ou ambiente não conta como RED válido.
+- TDD para cada comportamento testável, no nível que o testa melhor (ver [Níveis de teste](#níveis-de-teste)). RED: teste que falha pelo motivo esperado. GREEN: implementação mínima. REFACTOR: com testes verdes. Falha de configuração, import, fixture ou ambiente não conta como RED válido.
 - Antes de criar um mecanismo de teste ou verificação, o agente procura o que já existe. O mecanismo criado é versionado, declarado na Configuração, documentado e genérico. Scripts ou configurações por PR ou issue são proibidos.
 - Commits pequenos e atômicos, cada um deixando o código consistente. Tarefas não são commits.
 - Decisões que surgirem durante a implementação são classificadas: **produto** (emenda da Spec na issue, com aceite do mantenedor), **técnica local** (registrada na PR) ou **transversal** (ADR em `docs/adr/`). A auditoria conta as emendas.
@@ -134,7 +134,7 @@ A invocação da etapa 6 é a autorização do squash, se o gate estiver verde. 
 
 **Fechamento do épico.** Quando a PR é o último ticket filho aberto do épico (todos os outros itens da checklist estão fechados), o merge gate faz mais uma verificação, antes de dar o resultado final:
 
-1. a suíte de aceite do épico está ativada, na branch integrada, e verde;
+1. os casos E2E do épico estão ativos, na branch integrada, e verdes;
 2. o épico não tem item pendente na checklist;
 3. o flag de feature (se houver) está desligado em produção ou será removido nesta PR, conforme o plano.
 
@@ -145,8 +145,25 @@ Se as três condições valem, o merge gate informa "fecha o épico" no resultad
 ### Épico e suíte de aceite
 
 - O plano do épico tem cenários Given/When/Then, o grafo de tickets por papel (contrato, persistência, regra, interface, integração e aceite) e, quando houver fronteira entre front e back, o esboço do contrato.
-- A suíte de aceite do épico é escrita no primeiro ticket, marcada como pendente com a tag do épico, e ativada no ticket que fecha o épico.
-- O épico só fecha com a suíte verde na `main` integrada (ver [Etapa 6](#etapa-6-merge-gate)).
+- Cada cenário do épico que cruza a costura com o sistema (ver [Quando um ticket precisa de E2E](#quando-um-ticket-precisa-de-e2e)) vira um caso E2E, atribuído ao ticket que o entrega.
+- O épico fecha com todos os seus casos ativos e verdes na `main` integrada (ver [Etapa 6](#etapa-6-merge-gate)). Não há ticket de aceite separado nem ativação no fechamento.
+
+### Níveis de teste
+
+- **Unitário:** regra pura, validação, decisão, parsing, cálculo. Roda a cada commit.
+- **Integração:** componente com arquivos, banco ou processo, em diretório temporário ou com fake. Roda na verificação da Spec.
+- **E2E:** fluxo ponta a ponta no ambiente real, só para a costura com o sistema. Roda antes da PR, na auditoria e no merge gate, não a cada commit.
+
+Não são E2E: aparência e layout (captura visual), textos e traduções (lint), e regra de dados já coberta pelo unitário ou pela integração.
+
+### Quando um ticket precisa de E2E
+
+Um ticket precisa de E2E quando muda algo que só se verifica no sistema real: permissão, seletor do sistema, montagem ou processo nativo, FileProvider, ou arquivo que outro app enxerga.
+
+- O ticket ativa de 1 a 3 casos, cada um um fluxo que o usuário faz do início ao fim. Não se cobre cada detalhe de UI.
+- O caso nasce ativo no ticket que o entrega. O harness pode listar casos de tickets futuros como NOT TESTED, só para exibição; isso não cria caso pendente no ticket atual.
+- O caso não repete o que o unitário ou a integração já provam.
+- Se o ambiente de teste não estiver disponível, o ticket não é auditado como concluído, e a pendência é dita na Spec, antes da implementação.
 
 ### Contrato
 
@@ -222,7 +239,7 @@ Ciclo dentro do ticket de interface, sem ticket separado:
 1. captura automática das telas alteradas, em desktop e mobile;
 2. autoavaliação por modelo de visão, comparando com o inventário da Spec;
 3. correção dos desvios;
-4. E2E do fluxo alterado.
+4. E2E do fluxo alterado, quando o ticket tocar a costura (ver [Quando um ticket precisa de E2E](#quando-um-ticket-precisa-de-e2e)). O mesmo caso serve de evidência; não se repete.
 
 A evidência (capturas e resultado da autoavaliação) vai para a PR. A auditoria bloqueia o ticket sem ela. Quando não houver ferramenta de captura configurada, a captura é feita manualmente e anexada.
 
@@ -419,7 +436,7 @@ comandos:
   typecheck: 
   build: ./gradlew assembleOfflineDebug assembleOnlineDebug
   smoke: 
-  e2e: sh scripts/e2e/run.sh  # harness adb; alvo: ADB_DEVICE do .env, senão aparelho único, senão emulador; suíte do épico pendente até a tag ser ativada
+  e2e: sh scripts/e2e/run.sh  # harness adb; alvo: ADB_DEVICE do .env, senão aparelho único, senão emulador; cada ticket ativa os seus casos
   visual: manual
 ambiente_local: sh scripts/install-phone.sh  # build online, instalação e abertura no celular conectado por adb; teste de atualização em docs/update-testing.md
 ambientes:

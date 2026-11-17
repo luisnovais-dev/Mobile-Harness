@@ -9,8 +9,8 @@
 #
 # Cada caso declara o requisito de arquitetura. Casos com `arm64` são
 # NOT TESTED em alvo que não seja arm64 (sessão PRoot exige arm64).
-# Casos marcados como `pending:<tag>` são a suíte do épico, ainda não
-# ativada: aparecem como NOT TESTED até o ticket que fecha a tag.
+# Casos pendentes (`pending <caso> <ticket>`) são entregues pelo ticket
+# indicado: aparecem como NOT TESTED até esse ticket ativá-los.
 #
 # Uso: sh scripts/e2e/run.sh [caso ...]
 
@@ -101,13 +101,13 @@ case_arm64_only() {
 }
 
 pending() {
-  record "NOT TESTED" "$1" "pendente: suíte do épico, ativada em ${2}"
+  record "NOT TESTED" "$1" "pendente: entregue pelo ticket ${2}"
 }
 
 run_all() {
-  pending storage-bind-sideload "tag epic:3 (#6)"
-  pending storage-bind-play "tag epic:3 (#6)"
-  pending storage-revoke-keeps-session "tag epic:3 (#6)"
+  pending project-folder-session "#5"
+  pending project-folder-revoke "#5"
+  pending git-external-worktree "#6"
   case_launch
   case_arm64_only
 }
