@@ -164,6 +164,8 @@
     <string name="ws_storage_no_access">Grant access to all files in Settings to use device storage.</string>
     <string name="ws_storage_root_invalid">Choose a folder inside device storage, not its root.</string>
     <string name="ws_storage_unavailable">Device storage is unavailable. Grant access and choose a folder inside it.</string>
+    <string name="ws_storage_invalid_folder">Choose a folder inside device storage, other than the storage root or the app\'s own data.</string>
+    <string name="ws_storage_folder_in_use">Another project already uses this folder. Choose a different one.</string>
     <string name="ws_storage_location">Where to save the project</string>
     <string name="ws_storage_not_empty">The folder must be empty to clone into it.</string>
     <string name="chat_attach_from_folder">Attach from device folder</string>

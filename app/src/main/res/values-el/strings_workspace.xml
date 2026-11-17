@@ -164,6 +164,8 @@
     <string name="ws_storage_no_access">Δώστε πρόσβαση σε όλα τα αρχεία στις Ρυθμίσεις για να χρησιμοποιήσετε τον αποθηκευτικό χώρο.</string>
     <string name="ws_storage_root_invalid">Επιλέξτε φάκελο μέσα στον αποθηκευτικό χώρο, όχι τη ρίζα του.</string>
     <string name="ws_storage_unavailable">Ο αποθηκευτικός χώρος της συσκευής δεν είναι διαθέσιμος. Δώστε πρόσβαση και επιλέξτε φάκελο.</string>
+    <string name="ws_storage_invalid_folder">Επιλέξτε φάκελο μέσα στον αποθηκευτικό χώρο της συσκευής, εκτός από τη ρίζα του χώρου ή τα δεδομένα της εφαρμογής.</string>
+    <string name="ws_storage_folder_in_use">Άλλο έργο χρησιμοποιεί ήδη αυτόν τον φάκελο. Επιλέξτε άλλον.</string>
     <string name="ws_storage_location">Πού θα αποθηκευτεί το έργο</string>
     <string name="ws_storage_not_empty">Ο φάκελος πρέπει να είναι άδειος για να γίνει κλωνοποίηση σε αυτόν.</string>
     <string name="chat_attach_from_folder">Επισύναψη από φάκελο της συσκευής</string>

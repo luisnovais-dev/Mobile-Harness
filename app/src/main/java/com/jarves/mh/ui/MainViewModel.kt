@@ -62,6 +62,9 @@ import com.jarves.mh.runtime.attachmentMimeType
 import com.jarves.mh.runtime.contextFileWithinFolder
 import com.jarves.mh.runtime.shouldDeleteExternalFolder
 import com.jarves.mh.runtime.storedExternalRoot
+import com.jarves.mh.runtime.FolderRefusal
+import com.jarves.mh.runtime.folderUsedByAnotherProject
+import com.jarves.mh.runtime.newFolderRefusal
 import com.jarves.mh.runtime.validatedNewProjectFolder
 import com.jarves.mh.runtime.DshRuntimeBridge
 import com.jarves.mh.runtime.AgentRegistry
@@ -1243,6 +1246,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val safe = validatedNewProjectFolder(externalRoot, currentSharedStorageAccess(getApplication())) ?: return null
         if (safe.isNotBlank()) File(safe).mkdirs()
         return safe
+    }
+
+    /**
+     * Mensagem de recusa da pasta escolhida na criação, ou null quando ela pode ser usada:
+     * pasta inválida (N2), sem acesso ao armazenamento, ou já usada por outro projeto (F2).
+     */
+    private fun newFolderRefusalMessage(externalRoot: String): String? = when (newFolderRefusal(externalRoot, currentSharedStorageAccess(getApplication()))) {
+        FolderRefusal.INVALID_FOLDER -> str(R.string.ws_storage_invalid_folder)
+        FolderRefusal.NO_ACCESS -> str(R.string.ws_storage_unavailable)
+        null -> if (folderUsedByAnotherProject(storedExternalRoot(externalRoot), _state.value.projects.map { it.externalRoot })) {
+            str(R.string.ws_storage_folder_in_use)
+        } else {
+            null
+        }
     }
 
     /** Pasta base do projeto: externa quando disponível, senão a área privada (Spec #5, RF-4). */
@@ -3224,12 +3241,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(toastMessage = str(R.string.vm_stop_before_new_project)) }
             return
         }
-        val app = getApplication<Application>()
-        val safeExternalRoot = if (externalRoot.isBlank()) "" else storedExternalRoot(externalRoot)
-        if (externalRoot.isNotBlank() && (safeExternalRoot.isBlank() || !currentSharedStorageAccess(app))) {
-            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+        newFolderRefusalMessage(externalRoot)?.let { message ->
+            _state.update { it.copy(toastMessage = message) }
             return
         }
+        val safeExternalRoot = if (externalRoot.isBlank()) "" else storedExternalRoot(externalRoot)
         if (safeExternalRoot.isNotBlank()) File(safeExternalRoot).mkdirs()
         val baseSlug = projectSlug(name)
         val usedSlugs = _state.value.projects.mapTo(mutableSetOf()) { it.slug }
@@ -3285,11 +3301,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(toastMessage = str(R.string.an_stop_before_new_project)) }
             return
         }
-        val safeExternalRoot = validatedExternalRoot(externalRoot)
-        if (safeExternalRoot == null) {
-            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+        newFolderRefusalMessage(externalRoot)?.let { message ->
+            _state.update { it.copy(toastMessage = message) }
             return
         }
+        val safeExternalRoot = validatedExternalRoot(externalRoot) ?: return
         val cleanName = name.replace(Regex("\\s+"), " ").trim().take(60)
         val baseSlug = projectSlug(cleanName)
         val usedSlugs = _state.value.projects.mapTo(mutableSetOf()) { it.slug }
@@ -3511,11 +3527,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(toastMessage = error.message ?: str(R.string.vm_invalid_git_url)) }
             return
         }
-        val safeExternalRoot = validatedExternalRoot(externalRoot)
-        if (safeExternalRoot == null) {
-            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+        newFolderRefusalMessage(externalRoot)?.let { message ->
+            _state.update { it.copy(toastMessage = message) }
             return
         }
+        val safeExternalRoot = validatedExternalRoot(externalRoot) ?: return
         // Git clona em pasta vazia. A pasta do usuário nunca é apagada em falha; só o conteúdo que o clone criou.
         if (safeExternalRoot.isNotBlank() && File(safeExternalRoot).list()?.isNotEmpty() == true) {
             _state.update { it.copy(toastMessage = str(R.string.ws_storage_not_empty)) }

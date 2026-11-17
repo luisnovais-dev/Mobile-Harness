@@ -82,3 +82,35 @@ class ExternalFolderDeletionTest {
         assertTrue(shouldDeleteExternalFolder(root, confirmed = true, sharedWithAnotherProject = false))
     }
 }
+
+class NewProjectFolderRefusalTest {
+    private val root = "/storage/emulated/0/MeuProjeto"
+
+    /** N2: uma raiz inválida é recusada como pasta inválida, mesmo com acesso ao armazenamento. */
+    @Test
+    fun invalidFolderIsReportedAsInvalidEvenWithAccess() {
+        assertEquals(FolderRefusal.INVALID_FOLDER, newFolderRefusal("/storage/emulated/0", storageAccess = true))
+        assertEquals(FolderRefusal.INVALID_FOLDER, newFolderRefusal("/data/user/0/com.jarves.mh/files", storageAccess = true))
+        assertEquals(FolderRefusal.INVALID_FOLDER, newFolderRefusal("/storage/emulated/0/../../data", storageAccess = true))
+    }
+
+    @Test
+    fun validFolderWithoutAccessIsReportedAsNoAccess() {
+        assertEquals(FolderRefusal.NO_ACCESS, newFolderRefusal(root, storageAccess = false))
+    }
+
+    @Test
+    fun validFolderWithAccessAndPrivateAreaAreAccepted() {
+        assertNull(newFolderRefusal(root, storageAccess = true))
+        assertNull(newFolderRefusal("", storageAccess = false))
+    }
+
+    /** F2: dois projetos não podem usar a mesma pasta do aparelho. */
+    @Test
+    fun folderAlreadyUsedByAnotherProjectIsDetected() {
+        assertTrue(folderUsedByAnotherProject(root, listOf("/storage/emulated/0/Outra", root)))
+        assertFalse(folderUsedByAnotherProject(root, listOf("/storage/emulated/0/Outra")))
+        assertFalse(folderUsedByAnotherProject(root, emptyList()))
+        assertFalse(folderUsedByAnotherProject("", listOf("")))
+    }
+}

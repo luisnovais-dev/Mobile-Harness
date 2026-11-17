@@ -164,6 +164,8 @@
     <string name="ws_storage_no_access">请在设置中授予访问所有文件的权限，以使用设备存储。</string>
     <string name="ws_storage_root_invalid">请选择设备存储中的文件夹，而不是根目录。</string>
     <string name="ws_storage_unavailable">设备存储不可用。请授予权限并选择一个文件夹。</string>
+    <string name="ws_storage_invalid_folder">请选择设备存储中的文件夹，不能是存储根目录或应用自身的数据。</string>
+    <string name="ws_storage_folder_in_use">已有其他项目在使用此文件夹。请选择其他文件夹。</string>
     <string name="ws_storage_location">项目保存位置</string>
     <string name="ws_storage_not_empty">克隆前该文件夹必须为空。</string>
     <string name="chat_attach_from_folder">从设备文件夹添加附件</string>

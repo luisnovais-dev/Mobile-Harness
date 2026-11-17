@@ -32,3 +32,18 @@ internal fun shouldDeleteExternalFolder(
     confirmed: Boolean,
     sharedWithAnotherProject: Boolean = false,
 ): Boolean = confirmed && !sharedWithAnotherProject && storedExternalRoot(externalRoot).isNotBlank()
+
+/** Motivo pelo qual a pasta escolhida na criação não pode ser usada (N2). */
+internal enum class FolderRefusal { NO_ACCESS, INVALID_FOLDER }
+
+/** Pasta pedida na criação: o motivo de recusa, ou null quando pode ser usada. A pasta inválida vem antes da falta de acesso (N2). */
+internal fun newFolderRefusal(requested: String, storageAccess: Boolean): FolderRefusal? = when {
+    requested.isBlank() -> null
+    storedExternalRoot(requested).isBlank() -> FolderRefusal.INVALID_FOLDER
+    !storageAccess -> FolderRefusal.NO_ACCESS
+    else -> null
+}
+
+/** Verdadeiro quando outro projeto já usa a pasta pedida; dois projetos não compartilham a mesma pasta (F2). */
+internal fun folderUsedByAnotherProject(requested: String, existingRoots: Collection<String>): Boolean =
+    requested.isNotBlank() && requested in existingRoots
