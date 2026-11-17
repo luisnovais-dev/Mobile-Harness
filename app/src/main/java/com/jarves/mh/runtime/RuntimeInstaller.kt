@@ -1566,26 +1566,8 @@ class RuntimeInstaller(private val context: Context) {
             add("-0")
             add("-r")
             add(rootfs.absolutePath)
-            add("-b")
-            add("/dev")
-            add("-b")
-            add("/proc")
-            add("-b")
-            add("/sys")
-            // ARM64 Android build tools (notably aapt2) use Bionic's
-            // /system/bin/linker64 and, on newer releases, APEX libraries.
-            listOf("/system", "/apex", "/vendor", "/product").forEach { hostPath ->
-                if (File(hostPath).exists()) {
-                    File(rootfs, hostPath.removePrefix("/")).mkdirs()
-                    add("-b")
-                    add(hostPath)
-                }
-            }
             // ADR 0002: a sessão monta só a pasta do projeto, nunca /storage/emulated/0.
-            add("-b")
-            add("${workspace.absolutePath}:$guestWorkspacePath")
-            add("-b")
-            add("${bridge.absolutePath}:/pocket-bridge")
+            addAll(prootWorkspaceBinds(rootfs, workspace, bridge, guestWorkspacePath))
             add("-w")
             add(guestWorkspacePath)
             addAll(guestCommand)
