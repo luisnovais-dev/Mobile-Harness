@@ -12,6 +12,7 @@ import java.util.UUID
 import java.util.zip.Deflater
 import com.jarves.mh.runtime.ExternalFolderAction
 import com.jarves.mh.runtime.SharedStoragePath
+import com.jarves.mh.runtime.foldersOverlap
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -216,8 +217,11 @@ class BackupManager(
             // Sem acesso ao armazenamento, a restauração recusa antes de alterar qualquer dado (F1).
             requireExternalFoldersReachable(restoredPrefs, ExternalFolderAction.RESTORE)
             // N1: duas pastas iguais no backup falhariam na segunda cópia, depois de gravar a primeira.
+            // N6: pastas iguais ou uma dentro da outra são recusadas antes de gravar a primeira.
             val roots = projects(restoredPrefs).map { it.optString("externalRoot") }.filter { it.isNotBlank() }
-            if (roots.size != roots.toSet().size) throw ExternalFolderSharedException()
+            if (roots.indices.any { i -> (i + 1 until roots.size).any { j -> foldersOverlap(roots[i], roots[j]) } }) {
+                throw ExternalFolderSharedException()
+            }
 
             // D2: a non-empty external folder refuses the whole restore before anything is applied.
             projects(restoredPrefs).forEach { project ->
@@ -428,22 +432,22 @@ class BackupManager(
             }
         }
 
-    private fun projects(prefs: JSONObject): List<JSONObject> = runCatching {
-        val array = JSONArray(prefs.getJSONObject("projects_json").getString("v"))
-        (0 until array.length()).mapNotNull(array::optJSONObject)
-    }.getOrDefault(emptyList())
+        private fun projects(prefs: JSONObject): List<JSONObject> = runCatching {
+            val array = JSONArray(prefs.getJSONObject("projects_json").getString("v"))
+            (0 until array.length()).mapNotNull(array::optJSONObject)
+        }.getOrDefault(emptyList())
 
-    private fun ZipInputStream.readJson(): JSONObject {
-        val bytes = java.io.ByteArrayOutputStream()
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        while (true) {
-            val count = read(buffer)
-            if (count < 0) break
-            bytes.write(buffer, 0, count)
-            if (bytes.size() > MAX_JSON_BYTES) throw InvalidBackupException("Backup file is damaged")
+        private fun ZipInputStream.readJson(): JSONObject {
+            val bytes = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            while (true) {
+                val count = read(buffer)
+                if (count < 0) break
+                bytes.write(buffer, 0, count)
+                if (bytes.size() > MAX_JSON_BYTES) throw InvalidBackupException("Backup file is damaged")
+            }
+            return JSONObject(bytes.toString(Charsets.UTF_8.name()))
         }
-        return JSONObject(bytes.toString(Charsets.UTF_8.name()))
-    }
 
         private const val MANIFEST = "manifest.json"
         private const val PREFS = "prefs.json"

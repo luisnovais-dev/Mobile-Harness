@@ -113,4 +113,13 @@ class NewProjectFolderRefusalTest {
         assertFalse(folderUsedByAnotherProject(root, emptyList()))
         assertFalse(folderUsedByAnotherProject("", listOf("")))
     }
+
+    /** N6: uma pasta dentro da de outro projeto, ou que a contém, é a mesma área de trabalho. */
+    @Test
+    fun folderInsideOrAroundAnotherProjectFolderIsDetected() {
+        val outer = "/storage/emulated/0/Foo"
+        assertTrue(folderUsedByAnotherProject("$outer/Bar", listOf(outer)))
+        assertTrue(folderUsedByAnotherProject(outer, listOf("$outer/Bar")))
+        assertFalse(folderUsedByAnotherProject("/storage/emulated/0/Foobar", listOf(outer)))
+    }
 }

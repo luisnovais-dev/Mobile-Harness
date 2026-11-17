@@ -44,6 +44,13 @@ internal fun newFolderRefusal(requested: String, storageAccess: Boolean): Folder
     else -> null
 }
 
-/** Verdadeiro quando outro projeto já usa a pasta pedida; dois projetos não compartilham a mesma pasta (F2). */
+/**
+ * Verdadeiro quando as duas pastas são a mesma ou uma está dentro da outra (N6).
+ * Assim, excluir ou restaurar uma nunca mexe na área de outro projeto.
+ */
+internal fun foldersOverlap(first: String, second: String): Boolean =
+    first == second || first.startsWith("$second/") || second.startsWith("$first/")
+
+/** Verdadeiro quando a pasta pedida se sobrepõe à de outro projeto; dois projetos não compartilham área (F2, N6). */
 internal fun folderUsedByAnotherProject(requested: String, existingRoots: Collection<String>): Boolean =
-    requested.isNotBlank() && requested in existingRoots
+    requested.isNotBlank() && existingRoots.any { it.isNotBlank() && foldersOverlap(requested, it) }

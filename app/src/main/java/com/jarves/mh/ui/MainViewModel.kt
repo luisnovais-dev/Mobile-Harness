@@ -3305,7 +3305,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(toastMessage = message) }
             return
         }
-        val safeExternalRoot = validatedExternalRoot(externalRoot) ?: return
+        val safeExternalRoot = validatedExternalRoot(externalRoot) ?: run {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+            return
+        }
         val cleanName = name.replace(Regex("\\s+"), " ").trim().take(60)
         val baseSlug = projectSlug(cleanName)
         val usedSlugs = _state.value.projects.mapTo(mutableSetOf()) { it.slug }
@@ -3531,7 +3534,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(toastMessage = message) }
             return
         }
-        val safeExternalRoot = validatedExternalRoot(externalRoot) ?: return
+        val safeExternalRoot = validatedExternalRoot(externalRoot) ?: run {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_unavailable)) }
+            return
+        }
         // Git clona em pasta vazia. A pasta do usuário nunca é apagada em falha; só o conteúdo que o clone criou.
         if (safeExternalRoot.isNotBlank() && File(safeExternalRoot).list()?.isNotEmpty() == true) {
             _state.update { it.copy(toastMessage = str(R.string.ws_storage_not_empty)) }
@@ -3959,8 +3965,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             File(filesDir, "workspaces/${project.id}").deleteRecursively()
             // RF-11: a pasta do aparelho só é apagada com confirmação explícita, raiz válida e sem outro projeto nela (F2).
             // Se a exclusão falha em parte, o registro diz "failed", não "ok" (F9).
-            val sharedWithAnother = project.externalRoot.isNotBlank() &&
-                _state.value.projects.any { it.externalRoot == project.externalRoot }
+            // Projeto já saiu de _state.value.projects acima, então só conta o que ficou (F2, N6).
+            val sharedWithAnother = folderUsedByAnotherProject(project.externalRoot, _state.value.projects.map { it.externalRoot })
             if (shouldDeleteExternalFolder(project.externalRoot, deleteExternalFolder, sharedWithAnother) &&
                 currentSharedStorageAccess(getApplication())
             ) {

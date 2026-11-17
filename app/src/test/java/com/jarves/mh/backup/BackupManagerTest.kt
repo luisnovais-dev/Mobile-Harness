@@ -364,4 +364,26 @@ class BackupManagerTest {
         assertEquals(listOf(external.path), BackupManager.externalFoldersIn(ByteArrayInputStream(bytes), null))
         assertEquals("on device", File(external, "README.md").readText())
     }
+
+    /** N6: uma pasta dentro da de outro projeto do backup também não pode ser restaurada pela metade. */
+    @Test
+    fun `restore refuses a project folder nested inside another project folder before changing anything`() {
+        val (source, _) = sourceApp()
+        val outer = temp.newFolder("device", "Foo")
+        val inner = File(outer, "Bar")
+        val both = JSONArray()
+            .put(JSONObject().put("id", "p1").put("name", "A").put("externalRoot", outer.path))
+            .put(JSONObject().put("id", "p2").put("name", "B").put("externalRoot", inner.path))
+        val stores = FakeStores(prefs = JSONObject().put("projects_json", JSONObject().put("t", "string").put("v", both.toString())))
+        val bytes = backupWithExternal(source, stores)
+        outer.deleteRecursively()
+        val target = FakeStores(prefs = projectsPrefs("keep"))
+        try {
+            BackupManager(source, target, "1.0.9", 10, externalRootAllowed = { true }).restore(ByteArrayInputStream(bytes), null)
+            fail("restore should refuse nested project folders")
+        } catch (expected: ExternalFolderSharedException) {
+            assertEquals(listOf("keep"), projectIds(target))
+            assertTrue(!outer.exists())
+        }
+    }
 }
