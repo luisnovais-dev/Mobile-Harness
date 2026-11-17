@@ -115,9 +115,9 @@ class RuntimeInstaller(private val context: Context) {
         macosMetadataRepairMarker.writeText("1")
     }
 
-    /** Returns the already verified runtime without performing network or update checks. */
     private fun sharedStorageAccess(): Boolean = currentSharedStorageAccess(context)
 
+    /** Returns the already verified runtime without performing network or update checks. */
     fun installedRuntime(): InstalledRuntime {
         check(isInstalled()) { str(R.string.rt_install_incomplete) }
         return InstalledRuntime(
