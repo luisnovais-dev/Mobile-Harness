@@ -56,16 +56,21 @@ resolve_target() {
     TARGET="$connected"; TARGET_LABEL="dispositivo único conectado"
     return 0
   fi
+  # Emulador só conta quando está em execução (serial emulator-*).
+  emu=$(printf '%s\n' "$connected" | grep '^emulator-' | head -n 1 || true)
+  if [ -n "$emu" ]; then
+    TARGET="$emu"; TARGET_LABEL="emulador em execução"
+    return 0
+  fi
   if [ "$count" = "0" ] && command -v emulator >/dev/null 2>&1 \
      && [ -n "$(emulator -list-avds 2>/dev/null | head -n 1)" ]; then
-    TARGET="emulator"; TARGET_LABEL="emulador"
-    return 0
+    NO_TARGET_REASON="emulador configurado, mas não está em execução"
   fi
   return 1
 }
 
 if ! resolve_target; then
-  echo "E2E: nenhum alvo (ADB_DEVICE ausente, nenhum aparelho ou emulador)."
+  echo "E2E: nenhum alvo (${NO_TARGET_REASON:-ADB_DEVICE ausente, nenhum aparelho ou emulador})."
   echo "NOT TESTED all: sem alvo"
   exit 2
 fi
