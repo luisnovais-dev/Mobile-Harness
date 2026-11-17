@@ -4634,24 +4634,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun shareWorkspaceFile(path: String) {
         val project = _state.value.activeProject ?: return
-        runCatching {
-            val source = safeWorkspaceFile(project, path) ?: error(str(R.string.fm_protected))
-            val app = getApplication<Application>()
-            // Spec #5, RF-10: compartilha uma cópia em cache/camera/, sem ampliar o FileProvider.
-            // Cada envio tem a sua pasta; as antigas saem na próxima abertura do app (clearShareCopies).
-            val file = shareCopyDestination(app.cacheDir, source.name, java.util.UUID.randomUUID().toString())
-                .also { it.parentFile?.mkdirs(); source.copyTo(it, overwrite = true) }
-            val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", file)
-            val mimeType = android.webkit.MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(file.extension.lowercase())
-                ?: "application/octet-stream"
-            app.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-                type = mimeType
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-            }, str(R.string.fm_share_title, file.name)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }.onFailure { error ->
-            _state.update { it.copy(toastMessage = str(R.string.fm_failed, error.message ?: str(R.string.vm_unknown_error))) }
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            runCatching {
+                // F8: a cópia do arquivo roda fora da thread principal; só o Intent volta para a UI.
+                val file = withContext(Dispatchers.IO) {
+                    val source = safeWorkspaceFile(project, path) ?: error(str(R.string.fm_protected))
+                    // Spec #5, RF-10: compartilha uma cópia em cache/camera/, sem ampliar o FileProvider.
+                    // Cada envio tem a sua pasta; as antigas saem na próxima abertura do app (clearShareCopies).
+                    shareCopyDestination(app.cacheDir, source.name, java.util.UUID.randomUUID().toString())
+                        .also { it.parentFile?.mkdirs(); source.copyTo(it, overwrite = true) }
+                }
+                val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", file)
+                val mimeType = android.webkit.MimeTypeMap.getSingleton()
+                    .getMimeTypeFromExtension(file.extension.lowercase())
+                    ?: "application/octet-stream"
+                app.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = mimeType
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }, str(R.string.fm_share_title, file.name)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }.onFailure { error ->
+                _state.update { it.copy(toastMessage = str(R.string.fm_failed, error.message ?: str(R.string.vm_unknown_error))) }
+            }
         }
     }
 
@@ -4679,13 +4684,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private val authorizedContextFolders = mutableSetOf<String>()
-
     private val externalAudit by lazy {
         ExternalFolderAuditLog(File(getApplication<Application>().filesDir, "audit/external-folders.log"))
     }
 
-    /** Abre uma pasta do aparelho para anexar arquivos. A autorização vale até o processo do app terminar. */
+    /** Abre uma pasta do aparelho para anexar arquivos. Anexar exige permissão de armazenamento no momento do anexo. */
     fun openContextFolder(path: String) {
         val app = getApplication<Application>()
         val folder = File(path)
@@ -4695,7 +4698,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         externalAudit.record(ExternalFolderAction.READ, "opened", path)
-        authorizedContextFolders += path
         val files = folder.listFiles { file -> file.isFile }.orEmpty().map { it.name }.sorted().take(200)
         _state.update { it.copy(contextFolderPath = path, contextFolderFiles = files) }
     }
@@ -4709,7 +4711,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val folderPath = _state.value.contextFolderPath ?: return
         val folder = File(folderPath)
         val file = File(folder, name)
-        if (folderPath !in authorizedContextFolders || !contextFileWithinFolder(folder, file)) {
+        // F12: a conferência é feita agora, não só na abertura: permissão revogada depois recusa o anexo (RF-9).
+        val allowed = currentSharedStorageAccess(getApplication()) &&
+            SharedStoragePath.isValidExternalRoot(folderPath) &&
+            contextFileWithinFolder(folder, file)
+        if (!allowed) {
             externalAudit.record(ExternalFolderAction.READ, "refused", file.path)
             _state.update { it.copy(toastMessage = str(R.string.ws_context_folder_unavailable)) }
             return
