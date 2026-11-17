@@ -1,7 +1,6 @@
-# Conjunto final de labels do processo. Fonte única dos nomes, cores e descrições.
-# O significado de cada label e as regras de uso estão em docs/PROCESSO.md (seção Labels).
+# Conjunto mínimo de labels. Fonte única dos nomes, cores e descrições.
+# Filosofia: só a label de TIPO é obrigatória. status:ready sinaliza o que está pronto pra dev.
 # Chaves em inglês (identificadores); descrições em pt-BR.
-# Aplicação: adotar-processo cria ou atualiza estes labels, com autorização na invocação.
 
 labels:
   - name: "type:feature"
@@ -22,21 +21,9 @@ labels:
   - name: "type:enhancement"
     color: "84b6eb"
     description: "Melhoria de funcionalidade existente"
-  - name: "status:approved"
+  - name: "status:ready"
     color: "0e8a16"
-    description: "Spec aprovada pelo mantenedor"
-  - name: "size:exception"
-    color: "b60205"
-    description: "PR acima do teto de tamanho, com justificativa"
-  - name: "duplicate"
-    color: "cfd3d7"
-    description: "Duplicata de outra issue ou PR"
-  - name: "invalid"
-    color: "e4e669"
-    description: "Relato que não corresponde a um problema real"
-  - name: "wontfix"
-    color: "ffffff"
-    description: "Decidido não corrigir"
+    description: "Pronto pra dev"
 
 # Normalização: labels em uso que não estão acima são remarcados antes de serem removidos.
 # Remarcar: aplicar o label de destino em cada item e só então remover o de origem.
@@ -45,13 +32,7 @@ remarcar:
   bug: type:bug
   documentation: type:docs
   enhancement: type:enhancement
-
-# Remoção, somente depois da remarcação e com lista confirmada pelo mantenedor.
-remover_apos_remarcacao:
-  - "good first issue"
-  - "help wanted"
-  - "question"
-  - "accessibility"
+  status:approved: status:ready
 
 repository:
   delete_branch_on_merge: true

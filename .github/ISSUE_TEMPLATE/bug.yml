@@ -15,30 +15,21 @@ body:
     id: reproducao
     attributes:
       label: Passos para reproduzir
-      description: Passos numerados que reproduzem o comportamento na main remota atual.
+      description: Passos numerados que reproduzem o comportamento.
       placeholder: |
         1. ...
         2. ...
     validations:
       required: true
   - type: textarea
-    id: esperado
+    id: esperado_observado
     attributes:
-      label: Comportamento esperado
-      description: O que deveria acontecer.
+      label: Esperado vs. observado
+      description: O que deveria acontecer e o que acontece hoje (inclua erros, sem segredos nem dados pessoais).
     validations:
       required: true
   - type: textarea
-    id: observado
+    id: notas
     attributes:
-      label: Comportamento observado
-      description: O que acontece hoje, incluindo mensagens de erro (sem segredos nem dados pessoais).
-    validations:
-      required: true
-  - type: textarea
-    id: criterios
-    attributes:
-      label: Critérios de aceite
-      description: Condições verificáveis que mostram que o defeito foi corrigido.
-    validations:
-      required: true
+      label: Notas
+      description: Opcional. Critérios de aceite da correção, áreas afetadas ou qualquer contexto extra.
