@@ -10,11 +10,15 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.util.UUID
 import java.util.zip.Deflater
+import com.jarves.mh.runtime.SharedStoragePath
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 class NotEnoughSpaceException(val requiredBytes: Long) : IOException("Not enough free storage to restore this backup")
+
+/** Restauração recusada: a pasta externa do projeto já tem arquivos (Spec #5, D2). Nada é alterado. */
+class ExternalFolderNotEmptyException : IOException("The project folder on this phone already has files")
 
 /** App data the backup reads and replaces that is not plain files (SharedPreferences, Keystore vault). */
 interface BackupStores {
@@ -48,6 +52,8 @@ class BackupManager(
     private val appVersionCode: Int,
     /** Appended to a restored project's name when the same project is already on the phone. */
     private val restoredNameSuffix: String = " (restored)",
+    /** Só caminhos aprovados (volume primário) são lidos ou gravados fora da área privada. */
+    private val externalRootAllowed: (String) -> Boolean = SharedStoragePath::isValidExternalRoot,
 ) {
     private data class Item(val name: String, val file: File)
 
@@ -60,9 +66,9 @@ class BackupManager(
         progress(BackupProgress(BackupStage.SCANNING))
         val includeSecrets = password != null
         val directories = mutableListOf<String>()
-        val items = collect(includeSecrets, directories, checkCancelled)
-        val total = items.sumOf { it.file.length() }
         val prefs = stores.exportPrefs()
+        val items = collect(includeSecrets, directories, checkCancelled) + externalFolderItems(prefs, directories, checkCancelled)
+        val total = items.sumOf { it.file.length() }
         val projects = projectCount(prefs)
         val executables = JSONArray()
         var done = 0L
@@ -158,7 +164,7 @@ class BackupManager(
                     name == PREFS -> prefs = zip.readJson()
                     name == SECRETS -> secrets = zip.readJson()
                     name == FINISH -> finish = zip.readJson()
-                    name.startsWith("$FILES_PREFIX/") || name.startsWith("$HOME_PREFIX/") -> {
+                    name.startsWith("$FILES_PREFIX/") || name.startsWith("$HOME_PREFIX/") || name.startsWith("$EXTERNAL_PREFIX/") -> {
                         if (manifest == null) throw InvalidBackupException("Backup file is damaged")
                         val target = File(staging, name).canonicalFile
                         require(target.toPath().startsWith(stagingPath)) { "Unsafe path in backup" }
@@ -196,6 +202,15 @@ class BackupManager(
                 }
             }
 
+            // D2: a non-empty external folder refuses the whole restore before anything is applied.
+            projects(restoredPrefs).forEach { project ->
+                val root = project.optString("externalRoot")
+                if (externalRootAllowed(root)) {
+                    val folder = File(root)
+                    if (folder.isDirectory && !folder.list().isNullOrEmpty()) throw ExternalFolderNotEmptyException()
+                }
+            }
+
             // Everything is verified and on disk. From here on the restore must not stop halfway.
             progress(BackupProgress(BackupStage.APPLYING, total, total, files))
             val currentPrefs = stores.exportPrefs()
@@ -215,6 +230,14 @@ class BackupManager(
                     entry.remove("slug") // Re-derived from the new name; the loader keeps slugs unique.
                 }
                 moveProject(staging, oldId, newId)
+                val root = project.optString("externalRoot")
+                if (externalRootAllowed(root)) {
+                    val folder = File(root).apply { mkdirs() }
+                    val staged = File(staging, "$EXTERNAL_PREFIX/$oldId")
+                    if (staged.isDirectory) staged.copyRecursively(folder, overwrite = false)
+                } else {
+                    entry.put("externalRoot", "")
+                }
                 merged.put(entry)
                 added++
             }
@@ -327,6 +350,20 @@ class BackupManager(
 
     private fun projectCount(prefs: JSONObject): Int = projects(prefs).size
 
+    /** Conteúdo das pastas externas dos projetos (D1). Entradas em `external/<id>/`. */
+    private fun externalFolderItems(prefs: JSONObject, directories: MutableList<String>, checkCancelled: () -> Unit): List<Item> {
+        val items = mutableListOf<Item>()
+        projects(prefs).forEach { project ->
+            val id = project.optString("id")
+            val root = project.optString("externalRoot")
+            if (!isSafeId(id) || !externalRootAllowed(root)) return@forEach
+            val folder = File(root)
+            if (!folder.isDirectory) return@forEach
+            walk(folder, "$EXTERNAL_PREFIX/$id", items, directories, checkCancelled) { true }
+        }
+        return items
+    }
+
     private fun ZipOutputStream.putJson(name: String, value: JSONObject) {
         putNextEntry(ZipEntry(name))
         write(value.toString().toByteArray(Charsets.UTF_8))
@@ -371,6 +408,7 @@ class BackupManager(
 
         /** App-private folders holding the user's work. */
         val DATA_DIRS = listOf("workspaces", "chats", "terminal-history", "android-builds")
+        private const val EXTERNAL_PREFIX = "external"
 
         /** Temporary agent/login sandboxes under workspaces/ that are recreated on demand. */
         private val SCRATCH_WORKSPACES = setOf("github-auth", "antigravity-auth", "antigravity-models")
