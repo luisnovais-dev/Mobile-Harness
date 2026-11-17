@@ -30,17 +30,21 @@ jobs:
           submodules: recursive
 
       - name: JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Componentes do SDK (platform, NDK e CMake exigidos pelo build)
+      # Componentes do SDK exigidos pelo build. O runner já traz o SDK em $ANDROID_HOME, com
+      # licenças pendentes: sem aceite, sdkmanager pede confirmação interativa e sai com erro.
+      # O aceite vem de um arquivo de entrada (<(yes)), e não de um pipe, para o pipefail não
+      # tratar o SIGPIPE do yes como falha. Substitui setup-android, que falhava nesse ponto.
+      - name: Componentes do SDK (licenças, platform, NDK e CMake)
         run: |
-          sdkmanager --install "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER" || { echo "ERRO: sdkmanager não encontrado em $SDKMANAGER" >&2; exit 1; }
+          "$SDKMANAGER" --licenses < <(yes) > /dev/null
+          "$SDKMANAGER" --install "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Gradle (com cache)
         uses: gradle/actions/setup-gradle@v4
@@ -70,17 +74,18 @@ jobs:
           submodules: recursive
 
       - name: JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Componentes do SDK (platform, NDK e CMake exigidos pelo build)
+      # Mesmo passo do job quality: aceite de licenças antes da instalação dos componentes.
+      - name: Componentes do SDK (licenças, platform, NDK e CMake)
         run: |
-          sdkmanager --install "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER" || { echo "ERRO: sdkmanager não encontrado em $SDKMANAGER" >&2; exit 1; }
+          "$SDKMANAGER" --licenses < <(yes) > /dev/null
+          "$SDKMANAGER" --install "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Gradle (com cache)
         uses: gradle/actions/setup-gradle@v4
