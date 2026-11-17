@@ -104,9 +104,108 @@ pending() {
   record "NOT TESTED" "$1" "pendente: entregue pelo ticket ${2}"
 }
 
+# Pré-condição dos casos do #5: projeto "$E2E_PROJECT" criado pela UI com pasta
+# externa "/storage/emulated/0/$E2E_DIR" (cenário 1 do épico). Os casos não criam
+# o projeto; se ele não existir na lista, o caso sai como NOT TESTED.
+E2E_PROJECT="mhe2e"
+E2E_DIR="MH-E2E-Projeto"
+
+# Lê a árvore de acessibilidade do aparelho (uiautomator) para a tela atual.
+ui_dump() {
+  adb_t shell uiautomator dump /sdcard/mh-e2e-ui.xml >/dev/null 2>&1
+  adb_t shell cat /sdcard/mh-e2e-ui.xml 2>/dev/null
+  adb_t shell rm /sdcard/mh-e2e-ui.xml >/dev/null 2>&1
+}
+
+ui_has() {
+  ui_dump | grep -q "$1"
+}
+
+# Toasts não entram na árvore do uiautomator; o texto é lido por OCR da captura.
+screen_has() {
+  adb_t exec-out screencap -p 2>/dev/null | tesseract stdin stdout 2>/dev/null | grep -qi "$1"
+}
+
+# Toca o centro do primeiro nó com o texto dado. Falha se não existir.
+ui_tap_text() {
+  xy=$(ui_dump | grep -o "<node[^>]*\(text\|content-desc\)=\"$1\"[^>]*>" | head -n 1 | grep -o 'bounds="[^"]*"' | grep -o '[0-9][0-9]*')
+  set -- $xy
+  [ -n "${1:-}" ] || return 1
+  adb_t shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+}
+
+restart_app() {
+  adb_t shell am force-stop "$PKG" >/dev/null 2>&1
+  adb_t shell am start -n "$ACTIVITY" >/dev/null 2>&1
+  sleep 12
+}
+
+# Cenário 1 do épico: o app grava na pasta externa do projeto, e o arquivo
+# aparece no caminho real visto pelo adb.
+case_project_folder_session() {
+  if [ "$is_arm64" != "1" ]; then
+    record "NOT TESTED" project-folder-session "requer arm64 (alvo: $abi)"
+    return
+  fi
+  if ! adb_t shell dumpsys package "$PKG" | grep -q "WRITE_EXTERNAL_STORAGE: granted=true"; then
+    record "NOT TESTED" project-folder-session "permissão de armazenamento não concedida"
+    return
+  fi
+  restart_app
+  if ! ui_tap_text "$E2E_PROJECT"; then
+    record "NOT TESTED" project-folder-session "projeto $E2E_PROJECT não encontrado"
+    return
+  fi
+  sleep 2
+  name="e2e-$(date +%H%M%S).txt"
+  if ! ui_tap_text "Files" || ! ui_tap_text "New" || ! ui_tap_text "New file"; then
+    record FAIL project-folder-session "menu de novo arquivo não encontrado"
+    return
+  fi
+  sleep 1
+  ui_tap_text "Name" >/dev/null 2>&1
+  adb_t shell input text "$name"
+  ui_tap_text "Create" >/dev/null 2>&1
+  sleep 3
+  if adb_t shell test -f "/storage/emulated/0/$E2E_DIR/$name"; then
+    record PASS project-folder-session "arquivo do app visível em /storage/emulated/0/$E2E_DIR"
+  else
+    record FAIL project-folder-session "arquivo não apareceu na pasta externa"
+  fi
+}
+
+# Cenário 5 do épico: permissão revogada, projeto externo abre com aviso.
+# Restaura a permissão ao final, para não deixar o aparelho alterado.
+case_project_folder_revoke() {
+  adb_t shell pm revoke "$PKG" android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1
+  adb_t shell pm revoke "$PKG" android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1
+  restart_app
+  if ! command -v tesseract >/dev/null 2>&1; then
+    record "NOT TESTED" project-folder-revoke "tesseract ausente (necessário para ler o aviso)"
+    adb_t shell pm grant "$PKG" android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1
+    adb_t shell pm grant "$PKG" android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1
+    return
+  fi
+  status=FAIL; evidence="aviso de degradação não apareceu"
+  if ui_tap_text "$E2E_PROJECT"; then
+    i=0
+    while [ "$i" -lt 3 ]; do
+      if screen_has "not available"; then
+        status=PASS; evidence="aviso de degradação exibido ao abrir o projeto"; break
+      fi
+      i=$((i + 1)); sleep 1
+    done
+  else
+    status="NOT TESTED"; evidence="projeto $E2E_PROJECT não encontrado"
+  fi
+  adb_t shell pm grant "$PKG" android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1
+  adb_t shell pm grant "$PKG" android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1
+  record "$status" project-folder-revoke "$evidence"
+}
+
 run_all() {
-  pending project-folder-session "#5"
-  pending project-folder-revoke "#5"
+  case_project_folder_session
+  case_project_folder_revoke
   pending git-external-worktree "#6"
   case_launch
   case_arm64_only
@@ -119,6 +218,8 @@ else
     case "$c" in
       launch) case_launch ;;
       arm64-only) case_arm64_only ;;
+      project-folder-session) case_project_folder_session ;;
+      project-folder-revoke) case_project_folder_revoke ;;
       *) record "NOT TESTED" "$c" "caso desconhecido" ;;
     esac
   done
