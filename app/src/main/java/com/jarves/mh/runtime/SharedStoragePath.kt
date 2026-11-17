@@ -27,3 +27,7 @@ internal object SharedStoragePath {
         return relative.split('/').none { it.isBlank() || it == "." || it == ".." }
     }
 }
+
+/** Caminho externo guardado no projeto, ou vazio quando inválido (dados de preferências não são confiáveis). */
+internal fun storedExternalRoot(raw: String): String =
+    raw.takeIf { SharedStoragePath.isValidExternalRoot(it) } ?: ""

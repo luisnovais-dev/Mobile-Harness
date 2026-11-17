@@ -14,6 +14,7 @@ import com.jarves.mh.model.ProviderProfile
 import com.jarves.mh.model.defaultDshApiForProvider
 import com.jarves.mh.model.projectSlug
 import com.jarves.mh.model.providersForAgent
+import com.jarves.mh.runtime.storedExternalRoot
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -314,6 +315,7 @@ class AppPreferences(private val context: Context) {
                 put("language", p.language)
                 put("slug", p.slug)
                 put("rootPath", p.rootPath)
+                if (p.externalRoot.isNotBlank()) put("externalRoot", p.externalRoot)
                 put("updatedAtMillis", p.updatedAtMillis)
                 put("kind", p.kind.name)
                 put("type", p.type.name)
@@ -362,6 +364,7 @@ class AppPreferences(private val context: Context) {
                     rootPath = obj.optString("rootPath", "").takeIf { root ->
                         root.isBlank() || (!root.startsWith('/') && !root.contains(".."))
                     } ?: "",
+                    externalRoot = storedExternalRoot(obj.optString("externalRoot", "")),
                     updatedAtMillis = millis,
                     kind = when (storedKind) {
                         "QUICK_CHAT" -> ProjectKind.QUICK_PROJECT

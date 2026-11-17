@@ -180,6 +180,7 @@ data class Project(
     val language: String,
     val slug: String = projectSlug(name),
     val rootPath: String = "",
+    val externalRoot: String = "",
     val updatedAtMillis: Long = System.currentTimeMillis(),
     val kind: ProjectKind = ProjectKind.PROJECT,
     val type: ProjectType = ProjectType.GENERAL,
