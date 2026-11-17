@@ -14,7 +14,6 @@ import com.jarves.mh.model.ProviderProfile
 import com.jarves.mh.model.defaultDshApiForProvider
 import com.jarves.mh.model.projectSlug
 import com.jarves.mh.model.providersForAgent
-import com.jarves.mh.runtime.storedExternalRoot
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -307,21 +306,7 @@ class AppPreferences(private val context: Context) {
 
     fun saveProjects(projects: List<Project>) {
         val arr = JSONArray()
-        projects.forEach { p ->
-            arr.put(JSONObject().apply {
-                put("id", p.id)
-                put("name", p.name)
-                put("description", p.description)
-                put("language", p.language)
-                put("slug", p.slug)
-                put("rootPath", p.rootPath)
-                if (p.externalRoot.isNotBlank()) put("externalRoot", p.externalRoot)
-                put("updatedAtMillis", p.updatedAtMillis)
-                put("kind", p.kind.name)
-                put("type", p.type.name)
-                p.androidTemplate?.let { put("androidTemplate", it.name) }
-            })
-        }
+        projects.forEach { p -> arr.put(projectToJson(p)) }
         preferences.edit().putString("projects_json", arr.toString()).apply()
     }
 
@@ -364,7 +349,7 @@ class AppPreferences(private val context: Context) {
                     rootPath = obj.optString("rootPath", "").takeIf { root ->
                         root.isBlank() || (!root.startsWith('/') && !root.contains(".."))
                     } ?: "",
-                    externalRoot = storedExternalRoot(obj.optString("externalRoot", "")),
+                    externalRoot = projectExternalRootFromJson(obj),
                     updatedAtMillis = millis,
                     kind = when (storedKind) {
                         "QUICK_CHAT" -> ProjectKind.QUICK_PROJECT
