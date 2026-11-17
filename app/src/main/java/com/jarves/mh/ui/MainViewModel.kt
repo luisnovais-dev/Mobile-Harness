@@ -53,6 +53,7 @@ import com.jarves.mh.network.GitHubRepository
 import com.jarves.mh.runtime.ClaudeRuntimeBridge
 import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.resolveProjectWorkspace
+import com.jarves.mh.runtime.shareCopyDestination
 import com.jarves.mh.runtime.storedExternalRoot
 import com.jarves.mh.runtime.DshRuntimeBridge
 import com.jarves.mh.runtime.AgentRegistry
@@ -4571,8 +4572,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun shareWorkspaceFile(path: String) {
         val project = _state.value.activeProject ?: return
         runCatching {
-            val file = safeWorkspaceFile(project, path) ?: error(str(R.string.fm_protected))
+            val source = safeWorkspaceFile(project, path) ?: error(str(R.string.fm_protected))
             val app = getApplication<Application>()
+            // Spec #5, RF-10: compartilha uma cópia em cache/camera/, sem ampliar o FileProvider.
+            val cameraCache = File(app.cacheDir, "camera/shared")
+            cameraCache.deleteRecursively()
+            val file = shareCopyDestination(app.cacheDir, source.name, java.util.UUID.randomUUID().toString())
+                .also { it.parentFile?.mkdirs(); source.copyTo(it, overwrite = true) }
             val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", file)
             val mimeType = android.webkit.MimeTypeMap.getSingleton()
                 .getMimeTypeFromExtension(file.extension.lowercase())
