@@ -90,3 +90,4 @@ _tmp*
 .claude/settings.local.json
 .claude/tmp-*
 .claude/*.log
+.worktrees/
