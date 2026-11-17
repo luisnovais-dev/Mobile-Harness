@@ -1,0 +1,120 @@
+#!/usr/bin/env sh
+# Harness E2E genérico para o app Android, executado por adb no aparelho ou emulador.
+#
+# Seleção do alvo (nesta ordem):
+#   1. ADB_DEVICE do .env (valor não é exibido);
+#   2. o único dispositivo conectado por USB ou Wi-Fi;
+#   3. emulador, se houver `emulator` com AVD configurado.
+# Sem alvo, sai com código 2 e marca tudo como NOT TESTED.
+#
+# Cada caso declara o requisito de arquitetura. Casos com `arm64` são
+# NOT TESTED em alvo que não seja arm64 (sessão PRoot exige arm64).
+# Casos marcados como `pending:<tag>` são a suíte do épico, ainda não
+# ativada: aparecem como NOT TESTED até o ticket que fecha a tag.
+#
+# Uso: sh scripts/e2e/run.sh [caso ...]
+
+set -u
+
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+PKG="com.jarves.mh"
+ACTIVITY="$PKG/.MainActivity"
+ADB="${ADB:-adb}"
+
+results=""
+fail_count=0
+pass_count=0
+nt_count=0
+
+record() {
+  # record <PASS|FAIL|NOT TESTED> <caso> <evidência curta>
+  results="${results}$1 $2 $3
+"
+  case "$1" in
+    PASS) pass_count=$((pass_count + 1)) ;;
+    FAIL) fail_count=$((fail_count + 1)) ;;
+    *) nt_count=$((nt_count + 1)) ;;
+  esac
+}
+
+resolve_target() {
+  if [ -f "$ROOT/.env" ]; then
+    configured=$(sed -n 's/^ADB_DEVICE=\(.*\)$/\1/p' "$ROOT/.env" | tail -n 1)
+    if [ -n "$configured" ]; then
+      TARGET="$configured"; TARGET_LABEL="ADB_DEVICE do .env"
+      return 0
+    fi
+  fi
+  connected=$($ADB devices 2>/dev/null | awk 'NR>1 && $2=="device" {print $1}')
+  count=$(printf '%s\n' "$connected" | grep -c . || true)
+  if [ "$count" = "1" ]; then
+    TARGET="$connected"; TARGET_LABEL="dispositivo único conectado"
+    return 0
+  fi
+  if [ "$count" = "0" ] && command -v emulator >/dev/null 2>&1 \
+     && [ -n "$(emulator -list-avds 2>/dev/null | head -n 1)" ]; then
+    TARGET="emulator"; TARGET_LABEL="emulador"
+    return 0
+  fi
+  return 1
+}
+
+if ! resolve_target; then
+  echo "E2E: nenhum alvo (ADB_DEVICE ausente, nenhum aparelho ou emulador)."
+  echo "NOT TESTED all: sem alvo"
+  exit 2
+fi
+
+adb_t() { $ADB -s "$TARGET" "$@"; }
+
+abi=$(adb_t shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '\r')
+is_arm64=0
+case "$abi" in arm64-v8a) is_arm64=1 ;; esac
+
+case_launch() {
+  adb_t shell am start -n "$ACTIVITY" >/dev/null 2>&1
+  sleep 2
+  if adb_t shell dumpsys window | grep -q "mCurrentFocus=.*$PKG"; then
+    record PASS launch "MainActivity em foco"
+  else
+    record FAIL launch "MainActivity não ficou em foco"
+  fi
+}
+
+case_arm64_only() {
+  if [ "$is_arm64" = "1" ]; then
+    record PASS arm64-only "alvo arm64"
+  else
+    record "NOT TESTED" arm64-only "requer arm64 (alvo: $abi)"
+  fi
+}
+
+pending() {
+  record "NOT TESTED" "$1" "pendente: suíte do épico, ativada em ${2}"
+}
+
+run_all() {
+  pending storage-bind-sideload "tag epic:3 (#6)"
+  pending storage-bind-play "tag epic:3 (#6)"
+  pending storage-revoke-keeps-session "tag epic:3 (#6)"
+  case_launch
+  case_arm64_only
+}
+
+if [ "$#" -eq 0 ]; then
+  run_all
+else
+  for c in "$@"; do
+    case "$c" in
+      launch) case_launch ;;
+      arm64-only) case_arm64_only ;;
+      *) record "NOT TESTED" "$c" "caso desconhecido" ;;
+    esac
+  done
+fi
+
+printf '%s' "$results"
+echo "E2E: PASS=$pass_count FAIL=$fail_count NOT_TESTED=$nt_count (alvo: $TARGET_LABEL, abi: ${abi:-?})"
+
+[ "$fail_count" -eq 0 ] || exit 1
+exit 0
