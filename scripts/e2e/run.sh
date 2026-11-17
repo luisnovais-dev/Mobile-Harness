@@ -121,10 +121,6 @@ ui_has() {
   ui_dump | grep -q "$1"
 }
 
-# Toasts não entram na árvore do uiautomator; o texto é lido por OCR da captura.
-screen_has() {
-  adb_t exec-out screencap -p 2>/dev/null | tesseract stdin stdout 2>/dev/null | grep -qi "$1"
-}
 
 # Toca o centro do primeiro nó com o texto dado. Falha se não existir.
 ui_tap_text() {
@@ -180,18 +176,12 @@ case_project_folder_revoke() {
   adb_t shell pm revoke "$PKG" android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1
   adb_t shell pm revoke "$PKG" android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1
   restart_app
-  if ! command -v tesseract >/dev/null 2>&1; then
-    record "NOT TESTED" project-folder-revoke "tesseract ausente (necessário para ler o aviso)"
-    adb_t shell pm grant "$PKG" android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1
-    adb_t shell pm grant "$PKG" android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1
-    return
-  fi
-  status=FAIL; evidence="aviso de degradação não apareceu"
+  status=FAIL; evidence="painel de pasta externa indisponível não apareceu"
   if ui_tap_text "$E2E_PROJECT"; then
     i=0
     while [ "$i" -lt 3 ]; do
-      if screen_has "not available"; then
-        status=PASS; evidence="aviso de degradação exibido ao abrir o projeto"; break
+      if ui_has "No access to device storage"; then
+        status=PASS; evidence="painel de pasta externa indisponível exibido no projeto"; break
       fi
       i=$((i + 1)); sleep 1
     done

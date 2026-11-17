@@ -165,7 +165,6 @@
     <string name="ws_storage_root_invalid">اختر مجلدًا داخل تخزين الجهاز، وليس جذره.</string>
     <string name="ws_storage_unavailable">تخزين الجهاز غير متاح. امنح الوصول واختر مجلدًا.</string>
     <string name="ws_storage_location">أين تُحفظ المشروع</string>
-    <string name="ws_storage_degraded">تخزين الجهاز غير متاح. تستخدم هذه الجلسة المجلد الخاص بالتطبيق.</string>
     <string name="ws_storage_not_empty">يجب أن يكون المجلد فارغًا لاستنساخ المستودع فيه.</string>
     <string name="chat_attach_from_folder">إرفاق من مجلد الجهاز</string>
     <string name="ws_context_folder_title">الملفات في هذا المجلد</string>

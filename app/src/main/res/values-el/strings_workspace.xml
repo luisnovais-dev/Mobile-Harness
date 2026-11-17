@@ -165,7 +165,6 @@
     <string name="ws_storage_root_invalid">Επιλέξτε φάκελο μέσα στον αποθηκευτικό χώρο, όχι τη ρίζα του.</string>
     <string name="ws_storage_unavailable">Ο αποθηκευτικός χώρος της συσκευής δεν είναι διαθέσιμος. Δώστε πρόσβαση και επιλέξτε φάκελο.</string>
     <string name="ws_storage_location">Πού θα αποθηκευτεί το έργο</string>
-    <string name="ws_storage_degraded">Ο αποθηκευτικός χώρος της συσκευής δεν είναι διαθέσιμος. Η συνεδρία χρησιμοποιεί τον ιδιωτικό φάκελο της εφαρμογής.</string>
     <string name="ws_storage_not_empty">Ο φάκελος πρέπει να είναι άδειος για να γίνει κλωνοποίηση σε αυτόν.</string>
     <string name="chat_attach_from_folder">Επισύναψη από φάκελο της συσκευής</string>
     <string name="ws_context_folder_title">Αρχεία σε αυτόν τον φάκελο</string>

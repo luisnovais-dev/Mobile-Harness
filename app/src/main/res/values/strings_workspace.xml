@@ -165,7 +165,6 @@
     <string name="ws_storage_root_invalid">Choose a folder inside device storage, not its root.</string>
     <string name="ws_storage_unavailable">Device storage is unavailable. Grant access and choose a folder inside it.</string>
     <string name="ws_storage_location">Where to save the project</string>
-    <string name="ws_storage_degraded">Device storage is not available. This session uses the app\'s private folder.</string>
     <string name="ws_storage_not_empty">The folder must be empty to clone into it.</string>
     <string name="chat_attach_from_folder">Attach from device folder</string>
     <string name="ws_context_folder_title">Files in this folder</string>
