@@ -10,7 +10,7 @@ O trabalho é fatiado por capacidade do usuário (vertical), não por camada té
 
 | Nível | O que é | Onde vive | Regra |
 |---|---|---|---|
-| **Épico** | Uma capacidade que o usuário consegue usar do início ao fim | Issue `epic.yml` | Tem plano, dono, cenários Given/When/Then, grafo de tickets por papel e suíte de aceite. É demonstrável pelo consumidor real. Épico só de backend exige justificativa e consumidor declarado. |
+| **Épico** | Uma capacidade que o usuário consegue usar do início ao fim | Issue `epic.yml` | Tem plano, dono, cenários Given/When/Then, grafo de tickets por papel e casos E2E de aceite. É demonstrável pelo consumidor real. Épico só de backend exige justificativa e consumidor declarado. |
 | **Ticket** | Uma entrega com Spec e aprovação | Issue `feature.yml` ou `melhoria.yml` | Declara "Parte de #", "Bloqueado por #", "Paralelizável com #" e as áreas ou arquivos que toca. |
 | **PR** | Uma unidade revisável | Pull request | Uma por ticket, por padrão. Fatias opcionais usam `Refs #n`, e a última usa `Closes #n`. |
 | **Tarefa** | Passo da Spec | Checklist da Spec | Ordenada, com critério de conclusão e teste. Tarefa não é commit. |
