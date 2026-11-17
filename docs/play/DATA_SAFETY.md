@@ -31,6 +31,8 @@ During setup and maintenance, Ubuntu, Anthropic, Node.js, Composer, and configur
 
 Projects, conversations, attachments, terminal history, checkpoints, preferences, runtime files, and diagnostics are stored in app-private device storage. API keys are encrypted using an Android Keystore-backed key. Data that never leaves the device is not declared as collected under the Play definition.
 
+Shared device storage. After the user grants storage access (sideload: storage permission; Play build: All files access), project sessions can read and write files in shared device storage (`/sdcard`). These files stay on the device. They reach the selected AI provider only when the user or the agent includes them in a request, as described in the section above.
+
 Backup & Restore writes a backup file only to a location the user picks with the system file picker; the app does not upload it anywhere. API keys and Linux logins are included only when the user sets a backup password, and then the whole file is encrypted with AES-256-GCM using a key derived from that password. Saving the file to a cloud folder is the user's own choice and is not a transfer by the app.
 
 ## Verification before submission

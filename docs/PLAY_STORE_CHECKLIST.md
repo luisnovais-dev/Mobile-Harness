@@ -20,6 +20,7 @@ This checklist covers the Play-facing work for package `com.jarves.mh`. It does 
 - [x] Keychain-backed upload keystore and repeatable signed-release script
 - [x] 512×512 Play icon and 1024×500 feature graphic
 - [x] Data safety, app-content, foreground-service, and reviewer worksheets
+- [x] Storage access: sideload requests `READ`/`WRITE` storage permission at runtime; the Play build declares `MANAGE_EXTERNAL_STORAGE` with the user-facing justification for project files (ADR 0001)
 - [x] Signed API 36 ARM64 AAB generated and certificate verified
 
 ## Required before uploading
@@ -36,6 +37,7 @@ This checklist covers the Play-facing work for package `com.jarves.mh`. It does 
 - [x] Prepare content rating, target audience, ads, app access, and privacy answers
 - [x] Prepare both `specialUse` foreground-service declarations
 - [ ] Declare the `dataSync` backup and restore foreground service in Play Console
+- [ ] Complete the Play Console Permissions Declaration Form for `MANAGE_EXTERNAL_STORAGE` with the justification in docs/adr/0001-acesso-armazenamento.md
 - [ ] Record a reviewer-accessible video showing how each foreground service is started, displayed, and stopped
 - [x] Provide reviewer instructions for setup and provider authentication
 - [ ] Run Play pre-launch reports on all supported Android versions

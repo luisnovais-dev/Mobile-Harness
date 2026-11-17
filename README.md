@@ -98,7 +98,7 @@ Mobile Harness unites modern **Jetpack Compose UI** with a self-contained **Ubun
     </td>
     <td width="50%" valign="top">
       <h3>Native File Workflow</h3>
-      <p>Browse, edit, search, and attach files directly from the app interface. Interoperate with system storage via Android Storage Access Framework (SAF).</p>
+      <p>Browse, edit, search, and attach files directly from the app interface. Interoperate with system storage via Android Storage Access Framework (SAF), and reach shared device storage from the project terminal after granting storage access.</p>
     </td>
   </tr>
   <tr>
@@ -395,7 +395,7 @@ Mobile-Harness/
 <br />
 
 * **Zero Cloud Intermediaries**: Mobile Harness connects your device directly to your chosen AI endpoint. No intermediate relays or telemetry servers collect your prompts or code.
-* **Scoped Storage**: Project imports and exports utilize Android's official Storage Access Framework (SAF) instead of broad shared storage access.
+* **Scoped Storage**: Project imports and exports use Android's official Storage Access Framework (SAF). Project sessions can also reach the shared device storage (`/sdcard`), but only after the user grants storage access: sideload builds request `READ`/`WRITE` storage permission, and Play builds request All files access (`MANAGE_EXTERNAL_STORAGE`). Without the grant, sessions start without `/sdcard`. Revoking the grant takes effect the next time the app starts.
 * **Cryptographic Checksums**: Root filesystem archives and Claude Code CLI packages are verified via SHA-256 checksums prior to extraction.
 * **Encrypted Secrets**: API tokens are encrypted in hardware-backed storage via Android Keystore.
 
