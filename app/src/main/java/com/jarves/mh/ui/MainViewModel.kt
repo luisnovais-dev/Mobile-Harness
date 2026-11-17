@@ -52,6 +52,7 @@ import com.jarves.mh.network.ProviderApiClient
 import com.jarves.mh.network.GitHubRepository
 import com.jarves.mh.runtime.ClaudeRuntimeBridge
 import com.jarves.mh.runtime.currentSharedStorageAccess
+import com.jarves.mh.runtime.isExternalWorkspaceUnavailable
 import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.shareCopyDestination
 import com.jarves.mh.runtime.storedExternalRoot
@@ -3004,6 +3005,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openProject(project: Project) {
+        val app = getApplication<Application>()
+        // Spec #5, RF-14: aviso explícito quando a pasta externa não pode ser usada agora.
+        if (isExternalWorkspaceUnavailable(
+                externalRoot = project.externalRoot,
+                storageAccess = currentSharedStorageAccess(app),
+                externalExists = project.externalRoot.isNotBlank() && File(project.externalRoot).isDirectory,
+            )
+        ) {
+            _state.update { it.copy(toastMessage = str(R.string.ws_storage_degraded)) }
+        }
         val current = _state.value
         if (current.activeProject?.id == project.id) {
             _state.update {

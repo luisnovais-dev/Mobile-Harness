@@ -165,4 +165,5 @@
     <string name="ws_storage_root_invalid">Επιλέξτε φάκελο μέσα στον αποθηκευτικό χώρο, όχι τη ρίζα του.</string>
     <string name="ws_storage_unavailable">Ο αποθηκευτικός χώρος της συσκευής δεν είναι διαθέσιμος. Δώστε πρόσβαση και επιλέξτε φάκελο.</string>
     <string name="ws_storage_location">Πού θα αποθηκευτεί το έργο</string>
+    <string name="ws_storage_degraded">Ο αποθηκευτικός χώρος της συσκευής δεν είναι διαθέσιμος. Η συνεδρία χρησιμοποιεί τον ιδιωτικό φάκελο της εφαρμογής.</string>
 </resources>
