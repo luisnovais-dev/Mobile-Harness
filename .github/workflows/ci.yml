@@ -37,8 +37,10 @@ jobs:
 
       # Componentes do SDK exigidos pelo build. O runner já traz o SDK em $ANDROID_HOME, com
       # licenças pendentes: sem aceite, sdkmanager pede confirmação interativa e sai com erro.
-      # O aceite vem de um arquivo de entrada (<(yes)), e não de um pipe, para o pipefail não
-      # tratar o SIGPIPE do yes como falha. Substitui setup-android, que falhava nesse ponto.
+      # O aceite vem de um arquivo de entrada (<(yes)), e não de um pipe: num pipe, o yes
+      # recebe SIGPIPE quando o sdkmanager termina, e isso viraria erro se o shell usasse
+      # pipefail. O runner usa `bash -e`, sem pipefail, mas a forma sem pipe vale nos dois casos.
+      # Substitui setup-android, que falhava nesse ponto.
       - name: Componentes do SDK (licenças, platform, NDK e CMake)
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
