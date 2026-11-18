@@ -475,9 +475,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var githubAuthJob: kotlinx.coroutines.Job? = null
     @Volatile private var lastOpenedAntigravityAuthUrl: String? = null
     private var activeRuntimeRequest: RuntimeRetryRequest? = null
-    private val pendingFollowUps = java.util.ArrayDeque<QueuedFollowUp>()
+    // Thread-safe: mutated from both the main thread (UI actions) and the runtime-event
+    // collector (e.g. startNextFollowUp scheduled on session completion), so plain
+    // ArrayDeque/mutableSet could corrupt or throw ConcurrentModificationException.
+    private val pendingFollowUps = java.util.concurrent.ConcurrentLinkedDeque<QueuedFollowUp>()
     @Volatile private var steeringToFollowUp: Boolean = false
-    private val failedApiKeyIds = mutableSetOf<String>()
+    private val failedApiKeyIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val androidLogLineSeq = java.util.concurrent.atomic.AtomicLong(0)
     private val folderMetadataCache = java.util.concurrent.ConcurrentHashMap<String, FolderMetadata>()
     private val folderCountsInFlight = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     // Writes are drained into a per-chat batch below so rapid activity frames do not
@@ -1177,19 +1181,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun detectPreviewUrl(output: String): String? {
-        val match = Regex("https?://(?:localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0):(\\d{2,5})(?:/[^\\s]*)?")
+        // Take the last match whose port is valid, not the last match then validate — otherwise a
+        // trailing malformed port (e.g. :99999) discards an earlier real :3000.
+        val port = Regex("https?://(?:localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0):(\\d{1,5})(?:/[^\\s]*)?")
             .findAll(output)
+            .mapNotNull { it.groupValues[1].toIntOrNull()?.takeIf { port -> port in 1..65535 } }
             .lastOrNull()
             ?: return null
-        val port = match.groupValues[1].toIntOrNull()?.takeIf { it in 1..65535 } ?: return null
         return "http://127.0.0.1:$port/"
     }
 
     private fun detectServerUrl(command: String): String? {
-        val match = Regex("""python(?:3)?\s+-m\s+http\.server(?:\s+(\d{2,5}))?""")
+        val match = Regex("""python(?:3)?\s+-m\s+http\.server(?:\s+(\d{1,5}))?""")
             .find(command)
             ?: return null
-        val port = match.groupValues.getOrNull(1)?.toIntOrNull() ?: 8000
+        val port = match.groupValues.getOrNull(1)?.takeIf(String::isNotEmpty)?.toIntOrNull() ?: 8000
         return port.takeIf { it in 1..65535 }?.let { "http://127.0.0.1:$it/" }
     }
 
@@ -2038,7 +2044,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val location = Regex("([A-Za-z0-9_]+\\.(?:kt|java)):(\\d+)").find(raw)
         _state.update { current ->
             val line = AndroidLogLine(
-                id = System.nanoTime(), text = raw, level = level,
+                id = androidLogLineSeq.incrementAndGet(), text = raw, level = level,
                 filePath = location?.groupValues?.getOrNull(1), line = location?.groupValues?.getOrNull(2)?.toIntOrNull(),
             )
             current.copy(androidLogcat = current.androidLogcat.copy(lines = (current.androidLogcat.lines + line).takeLast(MAX_LOGCAT_LINES)))
@@ -2047,6 +2053,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun stopAndroidLogcat() {
         androidLogcatProcess?.destroy()
+        // `su -c logcat` often survives SIGTERM (it does not reach the child), so escalate —
+        // the build/terminal stops do the same. Without this the logcat stream leaks.
+        if (androidLogcatProcess?.isAlive == true) androidLogcatProcess?.destroyForcibly()
         androidLogcatJob?.cancel()
         androidLogcatJob = null
         _state.update { it.copy(androidLogcat = it.androidLogcat.copy(running = false)) }
@@ -2965,22 +2974,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (_state.value.apiPingStatus == ApiPingStatus.PINGING) return
         _state.update { it.copy(apiPingStatus = ApiPingStatus.PINGING, apiPingMessage = str(R.string.vm_ping_sending)) }
         viewModelScope.launch {
-            val key = vault.get(profile.kind.name).orEmpty()
-            val result = providerApi.validate(
-                profile.baseUrl,
-                profile.model,
-                key,
-                providerProtocolForAgent(profile, _state.value.agentKind),
-                emptyList(),
-                profile.openRouterProviderOrder,
-                profile.openRouterAllowFallbacks,
-            )
-            when (result) {
-                is ConnectionValidation.Success -> _state.update {
-                    it.copy(apiPingStatus = ApiPingStatus.OK, apiPingMessage = str(R.string.vm_ping_success))
+            try {
+                val key = vault.get(profile.kind.name).orEmpty()
+                val result = providerApi.validate(
+                    profile.baseUrl,
+                    profile.model,
+                    key,
+                    providerProtocolForAgent(profile, _state.value.agentKind),
+                    emptyList(),
+                    profile.openRouterProviderOrder,
+                    profile.openRouterAllowFallbacks,
+                )
+                when (result) {
+                    is ConnectionValidation.Success -> _state.update {
+                        it.copy(apiPingStatus = ApiPingStatus.OK, apiPingMessage = str(R.string.vm_ping_success))
+                    }
+                    is ConnectionValidation.Failure -> _state.update {
+                        it.copy(apiPingStatus = ApiPingStatus.FAILED, apiPingMessage = result.message)
+                    }
                 }
-                is ConnectionValidation.Failure -> _state.update {
-                    it.copy(apiPingStatus = ApiPingStatus.FAILED, apiPingMessage = result.message)
+            } catch (cancellation: kotlinx.coroutines.CancellationException) {
+                throw cancellation
+            } catch (error: Exception) {
+                // Without this the status would stay PINGING forever and block any re-test.
+                _state.update {
+                    it.copy(
+                        apiPingStatus = ApiPingStatus.FAILED,
+                        apiPingMessage = error.message?.replace(Regex("\\s+"), " ")?.trim()?.take(240)
+                            ?: str(R.string.vm_unknown_error),
+                    )
                 }
             }
         }

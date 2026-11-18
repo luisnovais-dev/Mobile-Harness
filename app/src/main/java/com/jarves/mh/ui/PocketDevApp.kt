@@ -5319,7 +5319,7 @@ private fun AndroidDashboardScreen(
     var section by rememberSaveable { mutableStateOf(AndroidDashboardSection.OVERVIEW) }
     var showBuildMenu by remember { mutableStateOf(false) }
     var showRawLog by rememberSaveable { mutableStateOf(false) }
-    val liveElapsedSeconds = state.androidBuildStartedAtMillis?.let { rememberLiveElapsedSeconds(it) }
+    val liveElapsedSeconds = rememberLiveElapsedSeconds(state.androidBuildStartedAtMillis)
     LaunchedEffect(Unit) { onRefresh() }
     LaunchedEffect(section) { onStopLogcat() }
     DisposableEffect(Unit) { onDispose(onStopLogcat) }
@@ -6982,7 +6982,7 @@ private fun LiveClaudeProcess(
     finishedAtMillis: Long?,
     thinkingActive: Boolean,
 ) {
-    val elapsedSeconds = startedAtMillis?.let { rememberLiveElapsedSeconds(it).toLong() } ?: 0L
+    val elapsedSeconds = rememberLiveElapsedSeconds(startedAtMillis)?.toLong() ?: 0L
     ClaudeActivityDisclosure(
         items = processItems,
         headline = activityHeadline(processItems, elapsedSeconds, thinkingActive),
@@ -7019,30 +7019,36 @@ private fun ClaudeActivityDisclosure(
     // Older saved chats may contain hundreds of polling steps. Rendering all of them inside
     // one lazy-list item can monopolize the UI thread, so show the latest useful window.
     val visibleItems = items.takeLast(32)
+    // Key expansion by the item's absolute position in `items`, not by its index in the sliding
+    // takeLast(32) window: while the agent streams new steps the window shifts, so a window-relative
+    // index would mark the wrong row as expanded. A distinct sentinel keys the empty summary row.
+    val summaryKey = Int.MIN_VALUE
+    val baseIndex = items.size - visibleItems.size
     Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp)) {
         if (visibleItems.isEmpty()) {
             ActivitySummaryRow(
                 item = null,
                 text = headline,
-                expanded = 0 in expandedItems,
+                expanded = summaryKey in expandedItems,
                 showProgress = isRunning,
                 onToggle = {
-                    expandedItems = if (0 in expandedItems) expandedItems - 0 else expandedItems + 0
+                    expandedItems = if (summaryKey in expandedItems) expandedItems - summaryKey else expandedItems + summaryKey
                 },
             )
-            if (0 in expandedItems) ActivityExpandedDetail(null, stringResource(R.string.ws_activity_reviewing_request))
+            if (summaryKey in expandedItems) ActivityExpandedDetail(null, stringResource(R.string.ws_activity_reviewing_request))
         } else {
             visibleItems.forEachIndexed { index, item ->
+                val itemKey = baseIndex + index
                 ActivitySummaryRow(
                     item = item,
                     text = compactActivityText(item),
-                    expanded = index in expandedItems,
+                    expanded = itemKey in expandedItems,
                     showProgress = isRunning && !item.isComplete,
                     onToggle = {
-                        expandedItems = if (index in expandedItems) expandedItems - index else expandedItems + index
+                        expandedItems = if (itemKey in expandedItems) expandedItems - itemKey else expandedItems + itemKey
                     },
                 )
-                if (index in expandedItems) ActivityExpandedDetail(item, activityDetail(item))
+                if (itemKey in expandedItems) ActivityExpandedDetail(item, activityDetail(item))
             }
         }
     }
@@ -7339,17 +7345,24 @@ private fun completedProcessSummary(
 }
 
 @Composable
-private fun rememberLiveElapsedSeconds(startedAtMillis: Long): Int {
+private fun rememberLiveElapsedSeconds(startedAtMillis: Long?): Int? {
+    // Must be called unconditionally (stable slot count). Calling it inside `startedAt?.let { … }`
+    // made the remember/LaunchedEffect appear and disappear as the build started/stopped, which
+    // violates the Rules of Composition and corrupts the slot table.
     var seconds by remember(startedAtMillis) {
-        mutableIntStateOf(((System.currentTimeMillis() - startedAtMillis) / 1000L).toInt().coerceAtLeast(0))
+        mutableIntStateOf(
+            if (startedAtMillis == null) 0
+            else ((System.currentTimeMillis() - startedAtMillis) / 1000L).toInt().coerceAtLeast(0),
+        )
     }
     LaunchedEffect(startedAtMillis) {
+        if (startedAtMillis == null) return@LaunchedEffect
         while (true) {
             delay(1_000)
             seconds = ((System.currentTimeMillis() - startedAtMillis) / 1000L).toInt().coerceAtLeast(0)
         }
     }
-    return seconds
+    return if (startedAtMillis == null) null else seconds
 }
 
 @Composable
