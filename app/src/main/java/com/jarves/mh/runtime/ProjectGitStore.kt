@@ -102,6 +102,16 @@ internal object ProjectGitStore {
         return !File(rootfs, target.removePrefix("/")).isDirectory
     }
 
+    /** E3: usa o `.git` mais próximo acima do workspace, como o próprio git faz. Subpasta (rootPath) incluída. */
+    fun isGitDirMissingForWorkspace(rootfs: File, workspace: File): Boolean {
+        var dir: File? = workspace.absoluteFile
+        while (dir != null) {
+            if (File(dir, ".git").exists()) return isGitDirMissingFor(rootfs, dir)
+            dir = dir.parentFile
+        }
+        return false
+    }
+
     /** E3: o `gitdir` some quando os dados do app são limpos ou o runtime é reinstalado. */
     fun isGitDirMissing(rootfs: File, slug: String): Boolean =
         !File(rootfs, guestGitDir(slug).removePrefix("/")).isDirectory

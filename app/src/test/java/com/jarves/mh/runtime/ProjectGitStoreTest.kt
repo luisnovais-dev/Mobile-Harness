@@ -101,6 +101,18 @@ class ProjectGitStoreTest {
     }
 
     @Test
+    fun workspaceSubfolderUsesNearestAncestorGitFile() {
+        // rootPath: o workspace é subpasta; o .git fica na raiz da pasta externa (como o git faz).
+        val rootfs = temp.newFolder("rootfs4")
+        val externa = temp.newFolder("externa")
+        File(externa, ".git").writeText("gitdir: /root/gd/ausente\n")
+        val sub = File(externa, "app").apply { mkdirs() }
+        assertTrue(ProjectGitStore.isGitDirMissingForWorkspace(rootfs, sub))
+        File(rootfs, "root/gd/ausente").mkdirs()
+        assertFalse(ProjectGitStore.isGitDirMissingForWorkspace(rootfs, sub))
+    }
+
+    @Test
     fun folderWithoutGitFileOrForeignGitFileIsNotReported() {
         val rootfs = temp.newFolder("rootfs3")
         val semGit = temp.newFolder("sem-git")
