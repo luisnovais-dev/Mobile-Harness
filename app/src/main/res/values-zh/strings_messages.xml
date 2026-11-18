@@ -183,4 +183,7 @@
     <string name="ws_terminal_leave_body">“%1$s”仍在终端中运行。</string>
     <string name="ws_terminal_leave_stop">停止并返回</string>
     <string name="ws_terminal_leave_keep">继续运行</string>
+    <string name="vm_git_external_no_gh">设备文件夹暂不支持通过 GitHub CLI 导入。请使用 Git URL。</string>
+    <string name="vm_git_external_invalid_branch">请输入有效的分支名称</string>
+    <string name="vm_git_external_invalid_url">请使用不含密码的 https 或 ssh Git URL</string>
 </resources>

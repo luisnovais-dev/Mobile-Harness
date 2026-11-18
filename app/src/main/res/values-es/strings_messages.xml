@@ -189,4 +189,7 @@
     <string name="ws_terminal_leave_body">«%1$s» sigue ejecutándose en la terminal.</string>
     <string name="ws_terminal_leave_stop">Detener y volver</string>
     <string name="ws_terminal_leave_keep">Seguir ejecutando</string>
+    <string name="vm_git_external_no_gh">La importación con GitHub CLI aún no está disponible para carpetas del dispositivo. Usa una URL de Git.</string>
+    <string name="vm_git_external_invalid_branch">Introduce un nombre de rama válido</string>
+    <string name="vm_git_external_invalid_url">Usa una URL de Git https o ssh sin contraseña</string>
 </resources>

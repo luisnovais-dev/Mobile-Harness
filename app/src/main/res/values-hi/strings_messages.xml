@@ -186,4 +186,7 @@
     <string name="ws_terminal_leave_body">टर्मिनल में “%1$s” अभी चल रहा है।</string>
     <string name="ws_terminal_leave_stop">रोकें और वापस जाएं</string>
     <string name="ws_terminal_leave_keep">चलने दें</string>
+    <string name="vm_git_external_no_gh">डिवाइस के फ़ोल्डर के लिए GitHub CLI से आयात अभी उपलब्ध नहीं है। Git URL का उपयोग करें।</string>
+    <string name="vm_git_external_invalid_branch">मान्य ब्रांच नाम दर्ज करें</string>
+    <string name="vm_git_external_invalid_url">बिना पासवर्ड वाला https या ssh Git URL उपयोग करें</string>
 </resources>

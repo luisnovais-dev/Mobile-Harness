@@ -198,4 +198,7 @@
     <string name="ws_terminal_leave_body">‏«%1$s» لا يزال يعمل في الطرفية.</string>
     <string name="ws_terminal_leave_stop">إيقاف والرجوع</string>
     <string name="ws_terminal_leave_keep">متابعة التشغيل</string>
+    <string name="vm_git_external_no_gh">استيراد GitHub CLI غير متاح للمجلدات على الجهاز حتى الآن. استخدم رابط Git.</string>
+    <string name="vm_git_external_invalid_branch">أدخل اسم فرع صالحًا</string>
+    <string name="vm_git_external_invalid_url">استخدم رابط Git ‏https أو ssh بدون كلمة مرور</string>
 </resources>
