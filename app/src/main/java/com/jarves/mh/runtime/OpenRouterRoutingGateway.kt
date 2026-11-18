@@ -8,6 +8,7 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.URL
+import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONArray
 import org.json.JSONObject
@@ -56,8 +57,12 @@ internal class OpenRouterRoutingGateway(
             val split = line.indexOf(':')
             if (split > 0) headers[line.substring(0, split).lowercase()] = line.substring(split + 1).trim()
         }
-        val length = headers["content-length"]?.toIntOrNull() ?: 0
         val output = BufferedOutputStream(socket.getOutputStream())
+        if (!isAuthorized(headers)) {
+            writeJson(output, 401, errorJson("Missing or invalid credentials"))
+            return
+        }
+        val length = headers["content-length"]?.toIntOrNull() ?: 0
         if (length !in 0..MAX_REQUEST_BYTES) {
             writeJson(output, 413, errorJson("Request is too large"))
             return
@@ -81,8 +86,15 @@ internal class OpenRouterRoutingGateway(
         runCatching {
             val routedBody = applyOpenRouterRouting(JSONObject(body.decodeToString()), profile).toString().toByteArray()
             val endpoint = profile.resolvedBaseUrl.trimEnd('/') + path
+            if (!com.jarves.mh.network.LocalNetwork.isPlainHttpAllowed(endpoint)) {
+                writeJson(output, 400, errorJson("Plain http:// is only allowed for local network addresses"))
+                return@runCatching
+            }
             val connection = URL(endpoint).openConnection() as HttpURLConnection
             try {
+                // Do not follow redirects: a 3xx to http://<internal> would re-send the
+                // Authorization header to an attacker-chosen host, leaking the API key.
+                connection.instanceFollowRedirects = false
                 connection.requestMethod = "POST"
                 connection.connectTimeout = 20_000
                 connection.readTimeout = 180_000
@@ -129,6 +141,20 @@ internal class OpenRouterRoutingGateway(
             bytes += value.toByte()
         }
         return null
+    }
+
+    /**
+     * Only forward requests that present the key this gateway was configured with.
+     *
+     * Binding to 127.0.0.1 keeps the server off the network but not private: on Android any app
+     * with the INTERNET permission can reach a loopback port. Without this check, another installed
+     * app could have its requests forwarded upstream on the user's key.
+     */
+    private fun isAuthorized(headers: Map<String, String>): Boolean {
+        val presented = headers["x-api-key"]
+            ?: headers["authorization"]?.removePrefix("Bearer ")?.trim()
+            ?: return false
+        return MessageDigest.isEqual(presented.toByteArray(), apiKey.toByteArray())
     }
 
     private fun errorJson(message: String): String = JSONObject()

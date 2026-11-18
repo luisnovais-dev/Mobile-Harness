@@ -181,6 +181,9 @@ internal class LocalFormatGateway(
         }
         val connection = URL(endpoint).openConnection() as HttpURLConnection
         return try {
+            // Do not follow redirects: a 3xx to http://<internal> would re-send the Authorization
+            // header to an attacker-chosen host, bypassing the local-only cleartext policy.
+            connection.instanceFollowRedirects = false
             connection.requestMethod = "POST"
             connection.connectTimeout = 20_000
             connection.readTimeout = 180_000

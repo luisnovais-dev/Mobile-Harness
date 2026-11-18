@@ -182,6 +182,10 @@ class ProviderApiClient(private val context: Context? = null) {
         return runCatching {
             val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
                 requestMethod = method
+                // Do not follow redirects: a 3xx to http://<internal> would re-send the
+                // Authorization header to an attacker-chosen host, bypassing the local-only
+                // cleartext policy and leaking the API key.
+                instanceFollowRedirects = false
                 connectTimeout = connectTimeoutMs
                 readTimeout = readTimeoutMs
                 setRequestProperty("Accept", "application/json")
