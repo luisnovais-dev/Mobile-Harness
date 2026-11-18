@@ -188,6 +188,7 @@
     <string name="ws_terminal_leave_stop">Διακοπή και επιστροφή</string>
     <string name="ws_terminal_leave_keep">Συνέχιση εκτέλεσης</string>
     <string name="vm_git_external_no_gh">Η εισαγωγή με GitHub CLI δεν είναι ακόμη διαθέσιμη για φακέλους της συσκευής. Χρησιμοποιήστε διεύθυνση Git.</string>
+    <string name="vm_git_gitdir_missing">Το ιστορικό Git αυτού του έργου λείπει (π.χ. μετά από εκκαθάριση δεδομένων της εφαρμογής). Το Git δεν θα εκτελείται στον φάκελο της συσκευής μέχρι να εισαχθεί ξανά το έργο.</string>
     <string name="vm_git_external_invalid_branch">Εισάγετε έγκυρο όνομα κλάδου</string>
     <string name="vm_git_external_invalid_url">Χρησιμοποιήστε διεύθυνση Git https ή ssh χωρίς κωδικό πρόσβασης</string>
 </resources>

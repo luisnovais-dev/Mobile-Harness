@@ -193,6 +193,7 @@
     <string name="ws_terminal_leave_stop">Остановить и выйти</string>
     <string name="ws_terminal_leave_keep">Оставить работать</string>
     <string name="vm_git_external_no_gh">Импорт через GitHub CLI пока недоступен для папок на устройстве. Используйте URL Git.</string>
+    <string name="vm_git_gitdir_missing">История Git этого проекта отсутствует (например, после очистки данных приложения). Git не будет работать с папкой на устройстве, пока проект не будет импортирован заново.</string>
     <string name="vm_git_external_invalid_branch">Введите допустимое имя ветки</string>
     <string name="vm_git_external_invalid_url">Используйте URL Git по https или ssh без пароля</string>
 </resources>

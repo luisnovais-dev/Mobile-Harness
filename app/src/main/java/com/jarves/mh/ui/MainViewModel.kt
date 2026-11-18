@@ -3077,6 +3077,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         configureBridgeRoots(project)
+        if (project.externalRoot.isNotBlank()) {
+            // RS-17/E3: o gitdir privado pode sumir (limpeza de dados do app). Aviso no projeto; sem fallback silencioso.
+            viewModelScope.launch(Dispatchers.IO) {
+                val missing = runCatching {
+                    ProjectGitStore.isGitDirMissing(installer.installedRuntime().rootfs, project.slug)
+                }.getOrDefault(false)
+                if (missing) _state.update { it.copy(toastMessage = str(R.string.vm_git_gitdir_missing)) }
+            }
+        }
         val terminal = loadProjectTerminal(project)
         val suggestedRoot = if (project.rootPath.isBlank()) detectNestedProjectRoot(project) else null
         val chats = preferences.loadProjectChats(project.id).ifEmpty {
@@ -3565,6 +3574,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         )
                         val installed = installer.installedRuntime()
                         val external = safeExternalRoot.isNotBlank()
+                        // RS-17 (decisão 3): o host não pode resolver para endereço interno nem de metadados. Resolve no IO, não no main thread.
+                        check(!ProjectGitStore.resolvesToInternal(URI(normalized).host ?: "")) { str(R.string.vm_git_local_unsupported) }
                         val command = if (external) {
                             // Spec #6, opção 1: histórico no rootfs privado; a pasta externa recebe só a árvore de trabalho.
                             check(!useGitHubCli) { str(R.string.vm_git_external_no_gh) }
@@ -3662,7 +3673,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val uri = URI(clean)
         require(uri.scheme.equals("https", ignoreCase = true)) { str(R.string.vm_git_https_only) }
         require(uri.userInfo == null && uri.fragment == null && uri.host?.isNotBlank() == true) { str(R.string.vm_git_no_credentials) }
-        require(uri.host != "localhost" && uri.host != "127.0.0.1" && uri.host != "::1") { str(R.string.vm_git_local_unsupported) }
+        require(uri.host != "localhost" && uri.host?.endsWith(".localhost") != true) { str(R.string.vm_git_local_unsupported) }
         require(uri.path.count { it == '/' } >= 2) { str(R.string.vm_git_url_not_repo) }
         return uri.toASCIIString()
     }
@@ -4001,6 +4012,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 externalAudit.record(ExternalFolderAction.DELETE, if (deleted) "ok" else "failed", project.externalRoot)
             } else if (deleteExternalFolder && sharedWithAnother) {
                 externalAudit.record(ExternalFolderAction.DELETE, "kept-shared", project.externalRoot)
+            }
+            // Histórico git privado (opção 1) é do projeto: sai junto, senão um novo projeto com o mesmo slug não clona.
+            if (project.externalRoot.isNotBlank()) {
+                runCatching {
+                    File(installer.installedRuntime().rootfs, ProjectGitStore.guestGitDir(project.slug).removePrefix("/")).deleteRecursively()
+                }
             }
             terminalHistoryFile(project.id).delete()
             androidBuildRecordFile(project.id).delete()

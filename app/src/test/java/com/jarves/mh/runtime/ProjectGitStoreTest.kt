@@ -1,6 +1,7 @@
 package com.jarves.mh.runtime
 
 import java.io.File
+import java.net.InetAddress
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -70,6 +71,23 @@ class ProjectGitStoreTest {
     fun cloneArgsOmitBranchWhenAbsent() {
         val args = ProjectGitStore.cloneArgs("https://github.com/owner/repo.git", null, "/root/gd/q1probe")
         assertFalse(args.contains("--branch"))
+    }
+
+    @Test
+    fun internalAndMetadataAddressesAreBlocked() {
+        listOf("127.0.0.1", "10.1.2.3", "172.16.0.1", "192.168.0.1", "169.254.169.254", "0.0.0.0", "100.64.0.1", "::1", "fd00::1", "fe80::1")
+            .forEach { ip -> assertTrue("should block $ip", ProjectGitStore.isInternalAddress(InetAddress.getByName(ip))) }
+    }
+
+    @Test
+    fun publicAddressesAreAllowed() {
+        listOf("8.8.8.8", "140.82.112.3", "2606:4700:4700::1111")
+            .forEach { ip -> assertFalse("should allow $ip", ProjectGitStore.isInternalAddress(InetAddress.getByName(ip))) }
+    }
+
+    @Test
+    fun hostResolvingToLoopbackIsBlocked() {
+        assertTrue(ProjectGitStore.resolvesToInternal("localhost"))
     }
 
     @Test

@@ -190,6 +190,7 @@
     <string name="ws_terminal_leave_stop">Detener y volver</string>
     <string name="ws_terminal_leave_keep">Seguir ejecutando</string>
     <string name="vm_git_external_no_gh">La importación con GitHub CLI aún no está disponible para carpetas del dispositivo. Usa una URL de Git.</string>
+    <string name="vm_git_gitdir_missing">Falta el historial Git de este proyecto (por ejemplo, tras borrar los datos de la app). Git no se ejecuta en la carpeta del dispositivo hasta volver a importar el proyecto.</string>
     <string name="vm_git_external_invalid_branch">Introduce un nombre de rama válido</string>
     <string name="vm_git_external_invalid_url">Usa una URL de Git https o ssh sin contraseña</string>
 </resources>

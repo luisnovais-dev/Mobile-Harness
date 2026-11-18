@@ -1,6 +1,7 @@
 package com.jarves.mh.runtime
 
 import java.io.File
+import java.net.InetAddress
 
 /**
  * Histórico git de projetos em pasta externa (Spec #6, opção 1).
@@ -56,6 +57,26 @@ internal object ProjectGitStore {
      * e grava `core.filemode=true`, o que faria cada arquivo com `+x` aparecer como modificado.
      */
     fun filemodeConfigArgs(): List<String> = listOf("git", "config", "core.filemode", "false")
+
+    /** RS-17 e decisão 3: endereço interno, de loopback, link-local (inclui metadados de nuvem) ou CGNAT. */
+    fun isInternalAddress(address: InetAddress): Boolean {
+        if (address.isAnyLocalAddress || address.isLoopbackAddress || address.isSiteLocalAddress) return true
+        if (address.isLinkLocalAddress || address.isMulticastAddress) return true
+        val bytes = address.address
+        if (bytes.size == 4) {
+            val first = bytes[0].toInt() and 0xFF
+            val second = bytes[1].toInt() and 0xFF
+            // 0.0.0.0/8 e 100.64.0.0/10 (CGNAT)
+            if (first == 0 || (first == 100 && second in 64..127)) return true
+        }
+        // fc00::/7 (unique local)
+        if (bytes.size == 16 && (bytes[0].toInt() and 0xFE) == 0xFC) return true
+        return false
+    }
+
+    /** RS-17: resolve o host antes do clone. Falha de resolução conta como bloqueio. */
+    fun resolvesToInternal(host: String): Boolean =
+        runCatching { InetAddress.getAllByName(host).any(::isInternalAddress) }.getOrDefault(true)
 
     /** `info/exclude` do `gitdir` privado, no rootfs do aparelho. */
     fun excludeFile(rootfs: File, slug: String): File =
