@@ -185,6 +185,7 @@
     <string name="ws_terminal_leave_keep">继续运行</string>
     <string name="vm_git_external_no_gh">设备文件夹暂不支持通过 GitHub CLI 导入。请使用 Git URL。</string>
     <string name="vm_git_gitdir_missing">此项目的 Git 历史丢失（例如清除应用数据后）。在重新导入项目之前，不会对设备文件夹运行 Git。</string>
+    <string name="vm_git_host_unresolved">无法解析仓库地址。请检查主机名和网络连接。</string>
     <string name="vm_git_external_invalid_branch">请输入有效的分支名称</string>
     <string name="vm_git_external_invalid_url">请使用不含密码的 https 或 ssh Git URL</string>
 </resources>

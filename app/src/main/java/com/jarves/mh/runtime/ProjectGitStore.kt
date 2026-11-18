@@ -74,9 +74,9 @@ internal object ProjectGitStore {
         return false
     }
 
-    /** RS-17: resolve o host antes do clone. Falha de resolução conta como bloqueio. */
-    fun resolvesToInternal(host: String): Boolean =
-        runCatching { InetAddress.getAllByName(host).any(::isInternalAddress) }.getOrDefault(true)
+    /** RS-17: resolve o host antes do clone. Retorna null se o nome não resolve (mensagem própria, não de endereço interno). */
+    fun resolveHost(host: String): List<InetAddress>? =
+        runCatching { InetAddress.getAllByName(host).toList() }.getOrNull()
 
     /** `info/exclude` do `gitdir` privado, no rootfs do aparelho. */
     fun excludeFile(rootfs: File, slug: String): File =
@@ -97,7 +97,9 @@ internal object ProjectGitStore {
     fun isGitDirMissingFor(rootfs: File, folder: File): Boolean {
         val gitFile = File(folder, ".git")
         if (!gitFile.isFile) return false
-        val target = gitFile.readText().trim().removePrefix("gitdir:").trim()
+        // Ilegível conta como ausente: falha fechada, sem fallback silencioso (E3).
+        val text = runCatching { gitFile.readText() }.getOrElse { return true }
+        val target = text.trim().removePrefix("gitdir:").trim()
         if (!target.startsWith("$GUEST_GIT_ROOT/")) return false
         return !File(rootfs, target.removePrefix("/")).isDirectory
     }

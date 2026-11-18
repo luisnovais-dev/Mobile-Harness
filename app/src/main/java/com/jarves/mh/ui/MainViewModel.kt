@@ -3581,7 +3581,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         val installed = installer.installedRuntime()
                         val external = safeExternalRoot.isNotBlank()
                         // RS-17 (decisão 3): o host não pode resolver para endereço interno nem de metadados. Resolve no IO, não no main thread.
-                        check(!ProjectGitStore.resolvesToInternal(URI(normalized).host ?: "")) { str(R.string.vm_git_local_unsupported) }
+                        val addresses = ProjectGitStore.resolveHost(URI(normalized).host ?: "")
+                            ?: throw IllegalStateException(str(R.string.vm_git_host_unresolved))
+                        check(addresses.none(ProjectGitStore::isInternalAddress)) { str(R.string.vm_git_local_unsupported) }
                         val command = if (external) {
                             // Spec #6, opção 1: histórico no rootfs privado; a pasta externa recebe só a árvore de trabalho.
                             check(!useGitHubCli) { str(R.string.vm_git_external_no_gh) }

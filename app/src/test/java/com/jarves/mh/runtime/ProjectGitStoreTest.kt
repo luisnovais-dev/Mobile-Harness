@@ -4,6 +4,7 @@ import java.io.File
 import java.net.InetAddress
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -86,8 +87,14 @@ class ProjectGitStoreTest {
     }
 
     @Test
-    fun hostResolvingToLoopbackIsBlocked() {
-        assertTrue(ProjectGitStore.resolvesToInternal("localhost"))
+    fun localhostResolvesToInternalAddress() {
+        assertTrue(ProjectGitStore.resolveHost("localhost")!!.any(ProjectGitStore::isInternalAddress))
+    }
+
+    @Test
+    fun unresolvableHostIsNotMistakenForInternal() {
+        // .invalid nunca resolve (RFC 2606): null, para a mensagem de host não resolvido.
+        assertNull(ProjectGitStore.resolveHost("nome-que-nao-existe.invalid"))
     }
 
     @Test
