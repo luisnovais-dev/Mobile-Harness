@@ -73,6 +73,12 @@ class ProjectGitStoreTest {
     }
 
     @Test
+    fun filemodeIsDisabledForExternalFolder() {
+        // Pasta externa não guarda bit de execução: sem isso, cada arquivo com +x aparece como modificado.
+        assertEquals(listOf("git", "config", "core.filemode", "false"), ProjectGitStore.filemodeConfigArgs())
+    }
+
+    @Test
     fun worktreeExcludeIsWrittenOnceInPrivateGitDir() {
         val rootfs = temp.newFolder("rootfs")
         val exclude = ProjectGitStore.excludeFile(rootfs, "q1probe")

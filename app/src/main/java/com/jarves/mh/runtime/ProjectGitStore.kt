@@ -51,6 +51,12 @@ internal object ProjectGitStore {
         add(".")
     }
 
+    /**
+     * Pasta externa não guarda bit de execução. O `git init` com `--separate-git-dir` testa o modo no rootfs
+     * e grava `core.filemode=true`, o que faria cada arquivo com `+x` aparecer como modificado.
+     */
+    fun filemodeConfigArgs(): List<String> = listOf("git", "config", "core.filemode", "false")
+
     /** `info/exclude` do `gitdir` privado, no rootfs do aparelho. */
     fun excludeFile(rootfs: File, slug: String): File =
         File(rootfs, "${guestGitDir(slug).removePrefix("/")}/info/exclude")

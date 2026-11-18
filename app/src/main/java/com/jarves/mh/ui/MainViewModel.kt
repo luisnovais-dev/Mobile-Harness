@@ -3600,6 +3600,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         check(exit == 0) { details.takeLast(600).ifBlank { str(R.string.vm_git_clone_failed_exit, exit) } }
                         if (external) {
                             ProjectGitStore.addWorktreeExclude(ProjectGitStore.excludeFile(installed.rootfs, identity.slug))
+                            val configProcess = installer.process(
+                                installed.proot,
+                                installed.rootfs,
+                                workspace,
+                                environment,
+                                ProjectGitStore.filemodeConfigArgs(),
+                                guestWorkspacePath = "/workspace/${identity.slug}",
+                                outputFile = output,
+                            )
+                            val configExit = configProcess.waitFor()
+                            check(configExit == 0) { str(R.string.vm_git_clone_failed_exit, configExit) }
                         }
                         val metadata = detectImportedProjectMetadata(workspace)
                         Project(
