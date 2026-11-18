@@ -31,7 +31,7 @@ Com a escolha do diretório do projeto (#5), o projeto passa a viver numa pasta 
 - Worktrees ficam visíveis para outros apps dentro da pasta do projeto. Isso é aceito pelo mantenedor.
 - A ADR 0001 mantém o restante: a escolha de manifesto por distribuição, a decisão de acesso em `SharedStorageAccess` e o fallback sem permissão.
 - Git sobre armazenamento FUSE (`/sdcard`) não grava objetos nem índice (Q1, ver Verificação). Por isso o histórico fica no rootfs privado.
-- Limitação conhecida: symlink versionado não é criado na pasta do projeto, e o bit de execução não persiste (`core.filemode=false`). Coberto pelo caso E2E `git-external-limits`.
+- Limitação conhecida: symlink versionado não é criado na pasta do projeto, e o bit de execução não persiste. O `git init` com `--separate-git-dir` testa o modo no rootfs e grava `core.filemode=true`, o que faria cada arquivo com `+x` aparecer como modificado. Por isso o clone externo grava `core.filemode=false` logo após o clone (`ProjectGitStore.filemodeConfigArgs`). Coberto pelo caso E2E `git-external-limits` (symlink e bit de execução) e pelo teste unitário `filemodeIsDisabledForExternalFolder`. A versão anterior desta ADR afirmava que o git detectava `core.filemode=false` sozinho; isso valia só para repositório dentro da pasta externa, que a opção 1 não usa.
 - Perda do histórico ao limpar dados do app ou reinstalar o runtime: o `gitdir` some, e a sessão avisa (E3). O backup do app não inclui o histórico.
 
 ## Verificação
