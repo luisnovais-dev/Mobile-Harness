@@ -29,7 +29,7 @@ During setup and maintenance, Ubuntu, Anthropic, Node.js, Composer, and configur
 
 ## Local-only data
 
-Projects, conversations, attachments, terminal history, checkpoints, preferences, runtime files, and diagnostics are stored in app-private device storage, except a project folder the user chose on the device (see below). API keys are encrypted using an Android Keystore-backed key. Data that never leaves the device is not declared as collected under the Play definition.
+Projects, conversations, attachments, terminal history, checkpoints, preferences, runtime files, and diagnostics are stored in app-private device storage, except a project folder the user chose on the device (see below). The git history of a project in such a folder is kept in app-private storage; the folder keeps the working files and worktree checkouts. API keys are encrypted using an Android Keystore-backed key. Data that never leaves the device is not declared as collected under the Play definition.
 
 Device storage folder. When the user grants storage access (sideload: storage permission; Play build: All files access) and picks a folder when creating a project, that project lives in that folder on the device, and the project session sees only that folder. The session never mounts the whole shared storage. Other apps on the device can read and write that folder, as they can any folder the user chooses. Files stay on the device. They reach the selected AI provider only when the user or the agent includes them in a request, as described in the section above. The user can also attach files from a folder on the device to a chat; the app copies only the files the user picks.
 
