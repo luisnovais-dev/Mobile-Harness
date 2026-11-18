@@ -51,6 +51,7 @@ import com.jarves.mh.network.ModelDiscoveryResult
 import com.jarves.mh.network.ProviderApiClient
 import com.jarves.mh.network.GitHubRepository
 import com.jarves.mh.runtime.ClaudeRuntimeBridge
+import com.jarves.mh.runtime.ProjectGitStore
 import com.jarves.mh.runtime.currentSharedStorageAccess
 import com.jarves.mh.runtime.resolveProjectWorkspace
 import com.jarves.mh.runtime.shareCopyDestination
@@ -3563,7 +3564,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             "GH_NO_UPDATE_NOTIFIER" to "1",
                         )
                         val installed = installer.installedRuntime()
-                        val command = if (useGitHubCli && repositoryName != null) {
+                        val external = safeExternalRoot.isNotBlank()
+                        val command = if (external) {
+                            // Spec #6, opção 1: histórico no rootfs privado; a pasta externa recebe só a árvore de trabalho.
+                            check(!useGitHubCli) { str(R.string.vm_git_external_no_gh) }
+                            check(branch.isNullOrBlank() || ProjectGitStore.isValidBranch(branch)) { str(R.string.vm_git_external_invalid_branch) }
+                            check(ProjectGitStore.isAllowedCloneUrl(normalized)) { str(R.string.vm_git_external_invalid_url) }
+                            File(installed.rootfs, ProjectGitStore.GUEST_GIT_ROOT.removePrefix("/")).mkdirs()
+                            ProjectGitStore.cloneArgs(normalized, branch?.takeIf(String::isNotBlank), ProjectGitStore.guestGitDir(identity.slug))
+                        } else if (useGitHubCli && repositoryName != null) {
                             buildList {
                                 addAll(listOf(RuntimeInstaller.GITHUB_CLI_GUEST_PATH, "repo", "clone", repositoryName, ".", "--", "--progress", "--single-branch"))
                                 branch?.takeIf(String::isNotBlank)?.let { addAll(listOf("--branch", it)) }
@@ -3589,6 +3598,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         val exit = process.waitFor()
                         val details = output.readTailText(MAX_PROCESS_OUTPUT_BYTES).trim()
                         check(exit == 0) { details.takeLast(600).ifBlank { str(R.string.vm_git_clone_failed_exit, exit) } }
+                        if (external) {
+                            ProjectGitStore.addWorktreeExclude(ProjectGitStore.excludeFile(installed.rootfs, identity.slug))
+                        }
                         val metadata = detectImportedProjectMetadata(workspace)
                         Project(
                             id = projectId,
@@ -3604,6 +3616,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             workspace.deleteRecursively()
                         } else {
                             workspace.listFiles()?.forEach { it.deleteRecursively() }
+                            // Só o histórico deste projeto novo; o slug é gerado agora e não é de outro projeto.
+                            runCatching {
+                                File(installer.installedRuntime().rootfs, ProjectGitStore.guestGitDir(identity.slug).removePrefix("/")).deleteRecursively()
+                            }
                         }
                         throw error
                     } finally {

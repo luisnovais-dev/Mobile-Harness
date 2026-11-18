@@ -88,6 +88,9 @@
     <string name="vm_invalid_git_url">Enter a valid public HTTPS Git URL</string>
     <string name="vm_connecting_git">Connecting to Git repository…</string>
     <string name="vm_cloning_named">Cloning %1$s…</string>
+    <string name="vm_git_external_no_gh">GitHub CLI import is not available for folders on the device yet. Use a Git URL.</string>
+    <string name="vm_git_external_invalid_branch">Enter a valid branch name</string>
+    <string name="vm_git_external_invalid_url">Use an https or ssh Git URL without a password</string>
     <string name="vm_git_clone_failed_exit">Git clone failed with exit code %1$d</string>
     <string name="vm_repository_cloned">Repository cloned successfully</string>
     <string name="vm_clone_failed">Clone failed: %1$s</string>
