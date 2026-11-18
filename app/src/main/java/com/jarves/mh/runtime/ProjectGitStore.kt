@@ -14,6 +14,7 @@ internal object ProjectGitStore {
 
     private val SLUG = Regex("^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
     private val BRANCH_CHARS = Regex("^[A-Za-z0-9._/-]+$")
+    private val GIT_WORD = Regex("(^|[^A-Za-z0-9_])git([^A-Za-z0-9_]|$)")
 
     /** Caminho do `gitdir` dentro da sessão. Recusa slug fora do formato do projeto. */
     fun guestGitDir(slug: String): String {
@@ -78,6 +79,9 @@ internal object ProjectGitStore {
     fun resolvesToInternal(host: String): Boolean =
         runCatching { InetAddress.getAllByName(host).any(::isInternalAddress) }.getOrDefault(true)
 
+    /** E3: comando que chama `git` como palavra (não `gitignore`, `mygit`). */
+    fun commandUsesGit(command: String): Boolean = GIT_WORD.containsMatchIn(command)
+
     /** `info/exclude` do `gitdir` privado, no rootfs do aparelho. */
     fun excludeFile(rootfs: File, slug: String): File =
         File(rootfs, "${guestGitDir(slug).removePrefix("/")}/info/exclude")
@@ -88,6 +92,18 @@ internal object ProjectGitStore {
         val current = if (exclude.exists()) exclude.readLines() else emptyList()
         if (current.contains(WORKTREE_DIR)) return
         exclude.appendText(WORKTREE_DIR + "\n")
+    }
+
+    /**
+     * E3: a pasta externa tem `.git` apontando para `/root/gd/...`, e esse gitdir não existe mais.
+     * Projeto sem `.git` ou com `.git` de outro lugar não conta: não foi clonado com o histórico privado.
+     */
+    fun isGitDirMissingFor(rootfs: File, folder: File): Boolean {
+        val gitFile = File(folder, ".git")
+        if (!gitFile.isFile) return false
+        val target = gitFile.readText().trim().removePrefix("gitdir:").trim()
+        if (!target.startsWith("$GUEST_GIT_ROOT/")) return false
+        return !File(rootfs, target.removePrefix("/")).isDirectory
     }
 
     /** E3: o `gitdir` some quando os dados do app são limpos ou o runtime é reinstalado. */

@@ -91,6 +91,40 @@ class ProjectGitStoreTest {
     }
 
     @Test
+    fun commandUsingGitWordIsDetected() {
+        listOf("git status", "cd x && git log", "ls | git add .", "git").forEach {
+            assertTrue("should detect '$it'", ProjectGitStore.commandUsesGit(it))
+        }
+    }
+
+    @Test
+    fun commandsWithoutGitWordAreNotDetected() {
+        listOf("cat .gitignore", "echo mygit", "ls git_dir", "npm test").forEach {
+            assertFalse("should not detect '$it'", ProjectGitStore.commandUsesGit(it))
+        }
+    }
+
+    @Test
+    fun gitFileMissingTargetIsReported() {
+        val rootfs = temp.newFolder("rootfs2")
+        val folder = temp.newFolder("folder")
+        File(folder, ".git").writeText("gitdir: /root/gd/sumiu\n")
+        assertTrue(ProjectGitStore.isGitDirMissingFor(rootfs, folder))
+        File(rootfs, "root/gd/sumiu").mkdirs()
+        assertFalse(ProjectGitStore.isGitDirMissingFor(rootfs, folder))
+    }
+
+    @Test
+    fun folderWithoutGitFileOrForeignGitFileIsNotReported() {
+        val rootfs = temp.newFolder("rootfs3")
+        val semGit = temp.newFolder("sem-git")
+        assertFalse(ProjectGitStore.isGitDirMissingFor(rootfs, semGit))
+        val outro = temp.newFolder("outro")
+        File(outro, ".git").writeText("gitdir: /data/outro/.git\n")
+        assertFalse(ProjectGitStore.isGitDirMissingFor(rootfs, outro))
+    }
+
+    @Test
     fun filemodeIsDisabledForExternalFolder() {
         // Pasta externa não guarda bit de execução: sem isso, cada arquivo com +x aparece como modificado.
         assertEquals(listOf("git", "config", "core.filemode", "false"), ProjectGitStore.filemodeConfigArgs())

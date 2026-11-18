@@ -1047,6 +1047,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val project = _state.value.projects.firstOrNull { it.id == projectId }
             ?: _state.value.activeProject?.takeIf { it.id == projectId }
             ?: return ProjectTerminalResult(str(R.string.vm_project_unavailable), 1, cwd)
+        // E3 (Spec #6): gitdir ausente em projeto externo. Comando com git é recusado; sem fallback silencioso.
+        if (project.externalRoot.isNotBlank() && ProjectGitStore.commandUsesGit(command) &&
+            ProjectGitStore.isGitDirMissingFor(installed.rootfs, File(project.externalRoot))
+        ) {
+            return ProjectTerminalResult(str(R.string.vm_git_gitdir_missing), 1, cwd)
+        }
         val workspace = projectWorkspaceRoot(project)
         val guestWorkspacePath = projectGuestRoot(project)
         val marker = "__POCKETDEV_CWD_${UUID.randomUUID()}__"
@@ -3081,7 +3087,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // RS-17/E3: o gitdir privado pode sumir (limpeza de dados do app). Aviso no projeto; sem fallback silencioso.
             viewModelScope.launch(Dispatchers.IO) {
                 val missing = runCatching {
-                    ProjectGitStore.isGitDirMissing(installer.installedRuntime().rootfs, project.slug)
+                    ProjectGitStore.isGitDirMissingFor(installer.installedRuntime().rootfs, File(project.externalRoot))
                 }.getOrDefault(false)
                 if (missing) _state.update { it.copy(toastMessage = str(R.string.vm_git_gitdir_missing)) }
             }
@@ -3557,7 +3563,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val identity = generateQuickChatIdentity(_state.value.projects.mapTo(mutableSetOf()) { it.slug })
+                    // Slug com gitdir ainda existente (pasta mantida) não é reutilizado: senão o clone apagaria esse histórico.
+                    val leftoverGitDirs = runCatching { File(installer.installedRuntime().rootfs, "root/gd").list()?.toSet() }.getOrNull().orEmpty()
+                    val identity = generateQuickChatIdentity(_state.value.projects.mapTo(mutableSetOf()) { it.slug } + leftoverGitDirs)
                     val projectId = UUID.randomUUID().toString()
                     val workspace = if (safeExternalRoot.isNotBlank()) {
                         File(safeExternalRoot)
@@ -4005,16 +4013,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Se a exclusão falha em parte, o registro diz "failed", não "ok" (F9).
             // Projeto já saiu de _state.value.projects acima, então só conta o que ficou (F2, N6).
             val sharedWithAnother = folderUsedByAnotherProject(project.externalRoot, _state.value.projects.map { it.externalRoot })
+            var folderDeleted = false
             if (shouldDeleteExternalFolder(project.externalRoot, deleteExternalFolder, sharedWithAnother) &&
                 currentSharedStorageAccess(getApplication())
             ) {
-                val deleted = File(project.externalRoot).deleteRecursively()
-                externalAudit.record(ExternalFolderAction.DELETE, if (deleted) "ok" else "failed", project.externalRoot)
+                folderDeleted = File(project.externalRoot).deleteRecursively()
+                externalAudit.record(ExternalFolderAction.DELETE, if (folderDeleted) "ok" else "failed", project.externalRoot)
             } else if (deleteExternalFolder && sharedWithAnother) {
                 externalAudit.record(ExternalFolderAction.DELETE, "kept-shared", project.externalRoot)
             }
-            // Histórico git privado (opção 1) é do projeto: sai junto, senão um novo projeto com o mesmo slug não clona.
-            if (project.externalRoot.isNotBlank()) {
+            // Histórico git privado (opção 1) sai só com a pasta apagada e sem outro projeto nela. Pasta mantida
+            // conserva o .git dela, que aponta para este gitdir.
+            if (project.externalRoot.isNotBlank() && folderDeleted && !sharedWithAnother) {
                 runCatching {
                     File(installer.installedRuntime().rootfs, ProjectGitStore.guestGitDir(project.slug).removePrefix("/")).deleteRecursively()
                 }
