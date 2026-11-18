@@ -91,20 +91,6 @@ class ProjectGitStoreTest {
     }
 
     @Test
-    fun commandUsingGitWordIsDetected() {
-        listOf("git status", "cd x && git log", "ls | git add .", "git").forEach {
-            assertTrue("should detect '$it'", ProjectGitStore.commandUsesGit(it))
-        }
-    }
-
-    @Test
-    fun commandsWithoutGitWordAreNotDetected() {
-        listOf("cat .gitignore", "echo mygit", "ls git_dir", "npm test").forEach {
-            assertFalse("should not detect '$it'", ProjectGitStore.commandUsesGit(it))
-        }
-    }
-
-    @Test
     fun gitFileMissingTargetIsReported() {
         val rootfs = temp.newFolder("rootfs2")
         val folder = temp.newFolder("folder")

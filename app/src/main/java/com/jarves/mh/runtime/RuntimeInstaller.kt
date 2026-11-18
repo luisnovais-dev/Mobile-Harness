@@ -1553,6 +1553,9 @@ class RuntimeInstaller(private val context: Context) {
             guestWorkspacePath == "/workspace" ||
                 Regex("^/workspace/[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$").matches(guestWorkspacePath),
         ) { "Invalid project workspace path" }
+        // E3 (Spec #6): pasta externa cujo gitdir privado sumiu não recebe nenhum processo até o projeto ser reimportado.
+        // Vale para o terminal e para o agente, sem fallback silencioso.
+        check(!ProjectGitStore.isGitDirMissingFor(rootfs, workspace)) { context.getString(R.string.vm_git_gitdir_missing) }
         workspace.mkdirs()
         File(rootfs, guestWorkspacePath.removePrefix("/")).mkdirs()
         // Self-heal devices whose Android tools were installed by an older app

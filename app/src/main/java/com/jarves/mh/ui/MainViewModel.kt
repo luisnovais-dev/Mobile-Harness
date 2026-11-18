@@ -1047,10 +1047,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val project = _state.value.projects.firstOrNull { it.id == projectId }
             ?: _state.value.activeProject?.takeIf { it.id == projectId }
             ?: return ProjectTerminalResult(str(R.string.vm_project_unavailable), 1, cwd)
-        // E3 (Spec #6): gitdir ausente em projeto externo. Comando com git é recusado; sem fallback silencioso.
-        if (project.externalRoot.isNotBlank() && ProjectGitStore.commandUsesGit(command) &&
-            ProjectGitStore.isGitDirMissingFor(installed.rootfs, File(project.externalRoot))
-        ) {
+        // E3 (Spec #6): gitdir ausente em projeto externo: o terminal não roda comando nenhum (ver RuntimeInstaller.process).
+        if (project.externalRoot.isNotBlank() && ProjectGitStore.isGitDirMissingFor(installed.rootfs, File(project.externalRoot))) {
             return ProjectTerminalResult(str(R.string.vm_git_gitdir_missing), 1, cwd)
         }
         val workspace = projectWorkspaceRoot(project)

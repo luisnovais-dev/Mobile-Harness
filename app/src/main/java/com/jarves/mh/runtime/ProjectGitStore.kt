@@ -14,7 +14,6 @@ internal object ProjectGitStore {
 
     private val SLUG = Regex("^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
     private val BRANCH_CHARS = Regex("^[A-Za-z0-9._/-]+$")
-    private val GIT_WORD = Regex("(^|[^A-Za-z0-9_])git([^A-Za-z0-9_]|$)")
 
     /** Caminho do `gitdir` dentro da sessão. Recusa slug fora do formato do projeto. */
     fun guestGitDir(slug: String): String {
@@ -78,9 +77,6 @@ internal object ProjectGitStore {
     /** RS-17: resolve o host antes do clone. Falha de resolução conta como bloqueio. */
     fun resolvesToInternal(host: String): Boolean =
         runCatching { InetAddress.getAllByName(host).any(::isInternalAddress) }.getOrDefault(true)
-
-    /** E3: comando que chama `git` como palavra (não `gitignore`, `mygit`). */
-    fun commandUsesGit(command: String): Boolean = GIT_WORD.containsMatchIn(command)
 
     /** `info/exclude` do `gitdir` privado, no rootfs do aparelho. */
     fun excludeFile(rootfs: File, slug: String): File =
