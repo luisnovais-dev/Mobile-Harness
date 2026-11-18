@@ -279,6 +279,8 @@ else
       arm64-only) case_arm64_only ;;
       project-folder-session) case_project_folder_session ;;
       project-folder-revoke) case_project_folder_revoke ;;
+      git-external-worktree) case_git_external_worktree ;;
+      git-external-limits) case_git_external_limits ;;
       *) record "NOT TESTED" "$c" "caso desconhecido" ;;
     esac
   done
